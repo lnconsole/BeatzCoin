@@ -23,5 +23,7 @@ GET /api/earnings
 	]
 }
 ```
+[ ] Proper payment tracking
+[ ] DB Persistence
 [ ] Authentication?
 
