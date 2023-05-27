@@ -2,14 +2,16 @@
 Turn heart rate into sats mtfk
 
 # Backend
-- Create endpoint to receive heart rate and ln-address. When heart rate is above a threshold for x amount of time, send payment to lnaddr
+[x] Create endpoint to receive heart rate and ln-address. When heart rate is above a threshold (180), send 1 sat to lnaddr
+```
 POST /api/pump
 {
 	lud16: string
-	heartRate: int (float)?
+	heartRate: int // heart rate above 180 will trigger sats payment
 }
-
-- Create endpoint that returns tx history of payments made to ln-addr
+```
+[x] Create endpoint that returns tx history of payments made to ln-addr
+```
 GET /api/earnings
 {
 	txs: [
@@ -20,3 +22,6 @@ GET /api/earnings
 	     }
 	]
 }
+```
+[ ] Authentication?
+
