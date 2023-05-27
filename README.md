@@ -2,6 +2,9 @@
 Turn heart rate into sats mtfk
 
 # Backend
+### To run, simply execute
+`go run .`
+
 [x] Create endpoint to receive heart rate and ln-address. When heart rate is above a threshold (180), send 1 sat to lnaddr
 ```
 POST /api/pump
@@ -24,6 +27,8 @@ GET /api/earnings
 }
 ```
 [ ] Proper payment tracking
+
 [ ] DB Persistence
+
 [ ] Authentication?
 
