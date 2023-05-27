@@ -2,8 +2,13 @@
 Turn heart rate into sats mtfk
 
 # Backend
-### To run, simply execute
-`go run .`
+### Getting Started
+```
+cp .env-example .env
+# then provide your ibexhub credentials
+
+go run .
+```
 
 [x] Create endpoint to receive heart rate and ln-address. When heart rate is above a threshold (180), send 1 sat to lnaddr
 ```
