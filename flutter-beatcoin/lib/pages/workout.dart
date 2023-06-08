@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkoutPage extends StatelessWidget {
-  WorkoutPage({super.key});
-
-  PolarController polarController = Get.find();
+  const WorkoutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    PolarController polarController = Get.find();
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.max,
