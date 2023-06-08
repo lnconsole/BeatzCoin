@@ -7,6 +7,7 @@ class PolarController extends GetxController {
   final devices = <PolarDeviceInfo>[].obs;
   RxInt heartRate = 0.obs;
   RxBool isDeviceConnected = false.obs;
+  RxString connectedDeviceId = ''.obs;
 
   PolarController() {
     polar.batteryLevel.listen((e) => print('Battery: ${e.level}'));
@@ -18,7 +19,6 @@ class PolarController extends GetxController {
   void searchDevices() async {
     polar.requestPermissions();
     polar.searchForDevice().listen((e) {
-      print('Found device in scan: ${e.deviceId}');
       devices.add(e);
     });
   }
@@ -28,6 +28,7 @@ class PolarController extends GetxController {
     await polar.connectToDevice(deviceId);
 
     isDeviceConnected.value = true;
+    connectedDeviceId.value = deviceId;
 
     await polar.sdkFeatureReady.firstWhere(
       (e) =>
@@ -51,5 +52,6 @@ class PolarController extends GetxController {
   void disconnect(String deviceId) async {
     await polar.disconnectFromDevice(deviceId);
     isDeviceConnected.value = false;
+    connectedDeviceId.value = '';
   }
 }
