@@ -39,6 +39,7 @@ dependencies:
   get: ^4.6.5
   salomon_bottom_bar: ^3.3.2
   flutter_svg: ^2.0.6
+  syncfusion_flutter_gauges: ^21.2.9
 
 dev_dependencies:
   flutter_test:
