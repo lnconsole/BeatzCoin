@@ -62,14 +62,16 @@ class _MyAppState extends State<MyApp> {
             _currentIndex = 4;
           });
         },
-        style: ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith(
-          (states) {
-            if (deviceConnected) {
-              return Colors.green[50];
-            }
-            return Colors.red[50];
-          },
-        )),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith(
+            (states) {
+              if (deviceConnected) {
+                return Colors.green[50];
+              }
+              return Colors.red[50];
+            },
+          ),
+        ),
         icon: SvgPicture.asset(
           deviceConnected
               ? _connectedIconAssetName

@@ -18,10 +18,21 @@ class DevicesPage extends StatelessWidget {
               onPressed: () {
                 polarController.searchDevices();
               },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  Colors.blue[100],
+                ),
+              ),
               icon: Icon(
                 Icons.search,
+                color: Colors.blue,
               ),
-              label: Text('Scan for Devices'),
+              label: Text(
+                'Scan for Devices',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
             ),
           ),
           Obx(
