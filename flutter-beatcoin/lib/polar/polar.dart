@@ -8,12 +8,18 @@ class PolarController extends GetxController {
   RxInt heartRate = 0.obs;
   RxBool isDeviceConnected = false.obs;
   RxString connectedDeviceId = ''.obs;
+  RxInt batteryLevel = 0.obs;
 
   PolarController() {
-    polar.batteryLevel.listen((e) => print('Battery: ${e.level}'));
-    polar.deviceConnecting.listen((_) => print('Device connecting'));
-    polar.deviceConnected.listen((_) => print('Device connected'));
-    polar.deviceDisconnected.listen((_) => print('Device disconnected'));
+    polar.batteryLevel.listen((e) => batteryLevel.value = e.level);
+    polar.deviceConnected.listen((e) {
+      isDeviceConnected.value = true;
+      connectedDeviceId.value = e.deviceId;
+    });
+    polar.deviceDisconnected.listen((_) {
+      isDeviceConnected.value = false;
+      connectedDeviceId.value = '';
+    });
   }
 
   void searchDevices() async {
@@ -27,9 +33,6 @@ class PolarController extends GetxController {
     await polar.disconnectFromDevice(deviceId);
     await polar.connectToDevice(deviceId);
 
-    isDeviceConnected.value = true;
-    connectedDeviceId.value = deviceId;
-
     await polar.sdkFeatureReady.firstWhere(
       (e) =>
           e.identifier == deviceId &&
@@ -37,8 +40,6 @@ class PolarController extends GetxController {
     );
     final availabletypes =
         await polar.getAvailableOnlineStreamDataTypes(deviceId);
-
-    print('available types: $availabletypes');
 
     if (availabletypes.contains(PolarDataType.hr)) {
       polar.startHrStreaming(deviceId).listen((e) {
@@ -51,7 +52,5 @@ class PolarController extends GetxController {
 
   void disconnect(String deviceId) async {
     await polar.disconnectFromDevice(deviceId);
-    isDeviceConnected.value = false;
-    connectedDeviceId.value = '';
   }
 }

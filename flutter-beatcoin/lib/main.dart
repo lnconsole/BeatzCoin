@@ -6,10 +6,8 @@ import 'package:beatcoin/pages/workout.dart';
 import 'package:beatcoin/polar/polar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/get_state_manager.dart';
-import 'package:polar/polar.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-import 'package:uuid/uuid.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +27,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var _currentIndex = 0;
+  final _disconnectedIconAssetName =
+      'assets/icons/plug-disconnected-24-regular.svg';
+  final _connectedIconAssetName = 'assets/icons/heart-rate.svg';
 
   Widget _selectedPage() {
     switch (_currentIndex) {
@@ -49,39 +50,54 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     PolarController polarController = Get.find();
 
+    Widget iconButton(bool deviceConnected) {
+      return FilledButton.icon(
+        onPressed: () {
+          setState(() {
+            _currentIndex = 4;
+          });
+        },
+        style: ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith(
+          (states) {
+            if (deviceConnected) {
+              return Colors.green[50];
+            }
+            return Colors.red[50];
+          },
+        )),
+        icon: SvgPicture.asset(
+          deviceConnected
+              ? _connectedIconAssetName
+              : _disconnectedIconAssetName,
+          width: 24,
+          height: 24,
+          colorFilter: ColorFilter.mode(
+            deviceConnected ? Colors.green[400]! : Colors.red[400]!,
+            BlendMode.srcIn,
+          ),
+        ),
+        label: Text(
+          deviceConnected ? '100' : 'connect',
+          style: TextStyle(
+            fontSize: 12,
+            color: deviceConnected ? Colors.green[400] : Colors.red[400],
+          ),
+        ),
+      );
+    }
+
     return MaterialApp(
       theme: ThemeData(
         fontFamily: 'Sora',
-        textTheme: Typography.blackMountainView,
       ),
       home: Scaffold(
         appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.white,
-          leading: IconButton(
-            icon: Obx(
-              () => Icon(
-                polarController.isDeviceConnected.value
-                    ? Icons.heart_broken
-                    : Icons.heart_broken_outlined,
-                color: Colors.red[400],
-              ),
-            ),
-            onPressed: () {
-              setState(() {
-                _currentIndex = 4;
-              });
-            },
-          ),
           title: Obx(
-            () => polarController.isDeviceConnected.value
-                ? Text(
-                    polarController.heartRate.string,
-                    style: TextStyle(
-                      color: Colors.black54,
-                    ),
-                  )
-                : Container(),
+            () => iconButton(
+              polarController.isDeviceConnected.value,
+            ),
           ),
         ),
         bottomNavigationBar: SalomonBottomBar(
@@ -91,28 +107,52 @@ class _MyAppState extends State<MyApp> {
             /// Home
             SalomonBottomBarItem(
               icon: Icon(Icons.home),
-              title: Text("Home"),
+              title: Text(
+                "Home",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
               selectedColor: Colors.orange,
             ),
 
             /// Likes
             SalomonBottomBarItem(
               icon: Icon(Icons.play_arrow),
-              title: Text("Workout"),
+              title: Text(
+                "Workout",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
               selectedColor: Colors.orange,
             ),
 
             /// Search
             SalomonBottomBarItem(
               icon: Icon(Icons.leaderboard),
-              title: Text("Leaderboard"),
+              title: Text(
+                "Leaderboard",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
               selectedColor: Colors.orange,
             ),
 
             /// Profile
             SalomonBottomBarItem(
               icon: Icon(Icons.person),
-              title: Text("Profile"),
+              title: Text(
+                "Profile",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
               selectedColor: Colors.orange,
             ),
           ],

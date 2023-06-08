@@ -32,7 +32,8 @@ class DevicesPage extends StatelessWidget {
                     (device) => Card(
                       child: ListTile(
                         leading: Icon(
-                          polarController.connectedDeviceId == device.deviceId
+                          polarController.connectedDeviceId.value ==
+                                  device.deviceId
                               ? Icons.heart_broken
                               : Icons.heart_broken_outlined,
                           color: Colors.red[400],
@@ -41,12 +42,14 @@ class DevicesPage extends StatelessWidget {
                         subtitle: Text(device.address),
                         trailing: FilledButton(
                           onPressed: () {
-                            polarController.connectedDeviceId == device.deviceId
+                            polarController.connectedDeviceId.value ==
+                                    device.deviceId
                                 ? polarController.disconnect(device.deviceId)
                                 : polarController.connect(device.deviceId);
                           },
                           child: Text(
-                            polarController.connectedDeviceId == device.deviceId
+                            polarController.connectedDeviceId.value ==
+                                    device.deviceId
                                 ? 'disconnect'
                                 : 'connect',
                           ),
