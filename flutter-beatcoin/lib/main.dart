@@ -83,13 +83,18 @@ class _MyAppState extends State<MyApp> {
             BlendMode.srcIn,
           ),
         ),
-        label: Text(
-          deviceConnected ? '100' : 'connect',
-          style: TextStyle(
-            fontSize: 12,
-            color: deviceConnected ? Colors.green[400] : Colors.red[400],
-          ),
-        ),
+        label: deviceConnected
+            ? Container(
+                height: 0,
+                width: 0,
+              )
+            : Text(
+                'connect',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
+                ),
+              ),
       );
     }
 

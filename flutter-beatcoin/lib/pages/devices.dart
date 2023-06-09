@@ -23,11 +23,11 @@ class DevicesPage extends StatelessWidget {
                   Colors.blue[100],
                 ),
               ),
-              icon: Icon(
+              icon: const Icon(
                 Icons.search,
                 color: Colors.blue,
               ),
-              label: Text(
+              label: const Text(
                 'Scan for Devices',
                 style: TextStyle(
                   color: Colors.blue,

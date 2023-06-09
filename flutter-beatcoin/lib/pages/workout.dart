@@ -14,8 +14,11 @@ class WorkoutPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Text('Workout View'),
-          buildDistanceTrackerExample(138),
+          Obx(
+            () => buildDistanceTrackerExample(
+              polarController.heartRate.value,
+            ),
+          ),
         ],
       ),
     );
