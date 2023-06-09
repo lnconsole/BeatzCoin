@@ -1,4 +1,4 @@
-import 'package:beatcoin/polar/polar.dart';
+import 'package:beatcoin/services/polar.dart';
 import 'package:beatcoin/widgets/gauge_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +8,7 @@ class WorkoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    PolarController polarController = Get.find();
+    PolarService polarController = Get.find();
 
     return SingleChildScrollView(
       child: Column(

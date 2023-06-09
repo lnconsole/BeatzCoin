@@ -41,6 +41,7 @@ dependencies:
   flutter_svg: ^2.0.6
   syncfusion_flutter_gauges: ^21.2.9
   nostr: ^1.4.0
+  shared_preferences: ^2.1.2
 
 dev_dependencies:
   flutter_test:

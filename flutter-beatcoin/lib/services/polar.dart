@@ -1,7 +1,7 @@
 import 'package:get/state_manager.dart';
 import 'package:polar/polar.dart';
 
-class PolarController extends GetxController {
+class PolarService extends GetxService {
   final polar = Polar();
   late final PolarDeviceInfo selectedDevice;
   final devices = <PolarDeviceInfo>[].obs;
@@ -10,7 +10,7 @@ class PolarController extends GetxController {
   RxString connectedDeviceId = ''.obs;
   RxInt batteryLevel = 0.obs;
 
-  PolarController() {
+  PolarService() {
     polar.batteryLevel.listen((e) => batteryLevel.value = e.level);
     polar.deviceConnected.listen((e) {
       isDeviceConnected.value = true;

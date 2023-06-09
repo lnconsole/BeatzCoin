@@ -3,12 +3,14 @@ import 'package:beatcoin/pages/home.dart';
 import 'package:beatcoin/pages/leaderboard.dart';
 import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
-import 'package:beatcoin/polar/polar.dart';
+import 'package:beatcoin/services/nostr.dart';
+import 'package:beatcoin/services/polar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +19,13 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  Get.put(PolarController());
+  final prefs = await SharedPreferences.getInstance();
+  final nostrService = NostrService(prefs);
+  await nostrService.init();
+  final polarService = PolarService();
+
+  Get.put(nostrService);
+  Get.put(polarService);
 
   runApp(const MyApp());
 }
@@ -53,7 +61,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    PolarController polarController = Get.find();
+    PolarService polarController = Get.find();
 
     Widget iconButton(bool deviceConnected) {
       return FilledButton.icon(
