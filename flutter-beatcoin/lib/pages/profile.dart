@@ -19,32 +19,51 @@ class _ProfilePageState extends State<ProfilePage> {
     return SingleChildScrollView(
       child: Obx(
         () => nostrService.loggedIn.value
-            ? Column(
-                children: [
-                  Obx(
-                    () => Text(
-                      nostrService.pubKey.value,
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Obx(
+                          () => CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              nostrService.profile.value.pictureUrl,
+                            ),
+                          ),
+                        ),
+                        Obx(
+                          () => Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: Text(
+                              nostrService.profile.value.name,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  FilledButton.icon(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        Colors.blue[100],
+                    FilledButton.icon(
+                      onPressed: () {},
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                          Colors.blue[100],
+                        ),
                       ),
-                    ),
-                    icon: const Icon(
-                      Icons.logout,
-                      color: Colors.blue,
-                    ),
-                    label: const Text(
-                      'logout',
-                      style: TextStyle(
+                      icon: const Icon(
+                        Icons.logout,
                         color: Colors.blue,
                       ),
+                      label: const Text(
+                        'logout',
+                        style: TextStyle(
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )
             : Column(
                 children: [

@@ -20,7 +20,7 @@ void main() async {
   ]);
 
   final prefs = await SharedPreferences.getInstance();
-  final nostrService = NostrService(prefs);
+  final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
   await nostrService.init();
   final polarService = PolarService();
 
@@ -180,5 +180,12 @@ class _MyAppState extends State<MyApp> {
         body: _selectedPage(),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    NostrService nostr = Get.find();
+    nostr.dispose();
+    super.dispose();
   }
 }
