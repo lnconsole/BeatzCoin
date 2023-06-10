@@ -23,42 +23,33 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Obx(
-                          () => CircleAvatar(
-                            backgroundImage: NetworkImage(
-                              nostrService.profile.value.pictureUrl,
-                            ),
+                    Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            nostrService.profile.value.pictureUrl,
                           ),
                         ),
-                        Obx(
-                          () => Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Text(
-                              nostrService.profile.value.name,
+                        title: Text(
+                          nostrService.profile.value.name,
+                        ),
+                        trailing: FilledButton.icon(
+                          onPressed: () {},
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                              Colors.blue[100],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    FilledButton.icon(
-                      onPressed: () {},
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          Colors.blue[100],
-                        ),
-                      ),
-                      icon: const Icon(
-                        Icons.logout,
-                        color: Colors.blue,
-                      ),
-                      label: const Text(
-                        'logout',
-                        style: TextStyle(
-                          color: Colors.blue,
+                          icon: const Icon(
+                            Icons.logout,
+                            color: Colors.blue,
+                          ),
+                          label: const Text(
+                            'logout',
+                            style: TextStyle(
+                              color: Colors.blue,
+                            ),
+                          ),
                         ),
                       ),
                     ),
