@@ -12,6 +12,7 @@ go run .
 
 [x] Nostr Kind 4 that client should send to server in order to receive sats.
 ```
+// if bpm is above 180 and user has not reached daily sats earned limit, sats will be sent to the lightning address in their kind 0
 {
   "id": 
   "pubkey": 
@@ -23,7 +24,8 @@ go run .
   "content": <json string. Check format below>,
   "sig": <64-bytes hex of the signature of the sha256 hash of the serialized event data, which is the same as the "id" field>
 }
-Content json:
+
+Content json to be stringify:
 {
   "beatzcoin_secret": "jeffrey epstein did not kill himself"
   "bpm": <int>
