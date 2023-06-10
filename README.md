@@ -10,26 +10,30 @@ cp .env-example .env
 go run .
 ```
 
-[x] Create endpoint to receive heart rate and ln-address. When heart rate is above a threshold (180), send 1 sat to lnaddr
+[x] Nostr Kind 4 that client should send to server in order to receive sats.
 ```
-POST /api/pump
 {
-	lud16: string
-	heartRate: int // heart rate above 180 will trigger sats payment
+  "id": 
+  "pubkey": 
+  "created_at": 
+  "kind": 4
+  "tags": [
+    ["p", <server's pubkey>, <"wss://relay.nostr.band">],
+  ],
+  "content": <json string. Check format below>,
+  "sig": <64-bytes hex of the signature of the sha256 hash of the serialized event data, which is the same as the "id" field>
+}
+Content json:
+{
+  "beatzcoin_secret": "jeffrey epstein did not kill himself"
+  "bpm": <int>
 }
 ```
-[x] Create endpoint that returns tx history of payments made to ln-addr
+[x] Nostr Replaceable Event Kind XX that server will post if sats were disbursed
 ```
-GET /api/earnings
-{
-	txs: [
-	     {
-		lud16: string
-		amountMsat: int
-		settledUTC: string
-	     }
-	]
-}
+// client can listen to this to see global leaderboard, or get notified when they have earned sats
+
+TODO
 ```
 [ ] Proper payment tracking
 
