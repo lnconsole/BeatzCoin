@@ -10,7 +10,7 @@ cp .env-example .env
 go run .
 ```
 
-[x] Nostr Kind 4 that client should send to server in order to receive sats.
+[x] Nostr Kind 4 that client should publish in order to receive sats
 ```
 // if bpm is above 180 and user has not reached daily sats earned limit, sats will be sent to the lightning address in their kind 0
 {
