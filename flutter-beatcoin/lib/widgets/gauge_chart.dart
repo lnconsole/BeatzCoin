@@ -3,7 +3,6 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 SfRadialGauge buildDistanceTrackerExample(int markerValue) {
   return SfRadialGauge(
-    enableLoadingAnimation: true,
     axes: <RadialAxis>[
       RadialAxis(
         showLabels: false,

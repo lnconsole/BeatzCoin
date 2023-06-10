@@ -5,6 +5,7 @@ import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
 import 'package:beatcoin/services/nostr.dart';
 import 'package:beatcoin/services/polar.dart';
+import 'package:beatcoin/services/workout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
@@ -24,9 +25,11 @@ void main() async {
   final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
   await nostrService.init();
   final polarService = PolarService();
+  final workoutService = WorkoutService();
 
   Get.put(nostrService);
   Get.put(polarService);
+  Get.put(workoutService);
 
   runApp(const MyApp());
 }
@@ -60,9 +63,29 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Widget _fab(int currentIndex, WorkoutService workoutService) {
+    if (currentIndex == 1) {
+      return Obx(
+        () => FloatingActionButton(
+          onPressed: () {
+            workoutService.running.value
+                ? workoutService.stopWorkout()
+                : workoutService.startWorkout();
+          },
+          child: Icon(
+            workoutService.running.value ? Icons.stop : Icons.play_arrow,
+          ),
+        ),
+      );
+    }
+
+    return Container();
+  }
+
   @override
   Widget build(BuildContext context) {
     PolarService polarController = Get.find();
+    WorkoutService workoutService = Get.find();
 
     Widget iconButton(bool deviceConnected) {
       return FilledButton.icon(
@@ -308,6 +331,10 @@ class _MyAppState extends State<MyApp> {
               selectedColor: Colors.orange,
             ),
           ],
+        ),
+        floatingActionButton: _fab(
+          _currentIndex,
+          workoutService,
         ),
         body: _selectedPage(),
       ),
