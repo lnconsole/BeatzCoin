@@ -22,6 +22,9 @@ class DevicesPage extends StatelessWidget {
                 backgroundColor: MaterialStateProperty.all(
                   Colors.blue[100],
                 ),
+                overlayColor: MaterialStateProperty.all(
+                  Colors.blue[200],
+                ),
               ),
               icon: const Icon(
                 Icons.search,

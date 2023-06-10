@@ -39,6 +39,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             backgroundColor: MaterialStateProperty.all(
                               Colors.blue[100],
                             ),
+                            overlayColor: MaterialStateProperty.all(
+                              Colors.blue[200],
+                            ),
                           ),
                           icon: const Icon(
                             Icons.logout,

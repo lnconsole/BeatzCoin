@@ -11,6 +11,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +80,14 @@ class _MyAppState extends State<MyApp> {
               return Colors.red[50];
             },
           ),
+          overlayColor: MaterialStateProperty.resolveWith(
+            (states) {
+              if (deviceConnected) {
+                return Colors.green[100];
+              }
+              return Colors.red[100];
+            },
+          ),
         ),
         icon: SvgPicture.asset(
           deviceConnected
@@ -107,13 +116,136 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MaterialApp(
-      theme: ThemeData(
+      // Theme config for FlexColorScheme version 7.1.x. Make sure you use
+// same or higher package version, but still same major version. If you
+// use a lower package version, some properties may not be supported.
+// In that case remove them after copying this theme to your app.
+      theme: FlexThemeData.light(
         fontFamily: 'Sora',
+        scheme: FlexScheme.orangeM3,
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+        blendLevel: 1,
+        subThemesData: const FlexSubThemesData(
+          useTextTheme: true,
+          useM2StyleDividerInM3: true,
+          defaultRadius: 12.0,
+          elevatedButtonSchemeColor: SchemeColor.onPrimaryContainer,
+          elevatedButtonSecondarySchemeColor: SchemeColor.primaryContainer,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          toggleButtonsBorderSchemeColor: SchemeColor.primary,
+          segmentedButtonSchemeColor: SchemeColor.primary,
+          segmentedButtonBorderSchemeColor: SchemeColor.primary,
+          unselectedToggleIsColored: true,
+          sliderValueTinted: true,
+          inputDecoratorSchemeColor: SchemeColor.primary,
+          inputDecoratorBackgroundAlpha: 31,
+          inputDecoratorUnfocusedHasBorder: false,
+          inputDecoratorFocusedBorderWidth: 1.0,
+          inputDecoratorPrefixIconSchemeColor: SchemeColor.primary,
+          fabUseShape: true,
+          fabAlwaysCircular: true,
+          fabSchemeColor: SchemeColor.primary,
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          drawerIndicatorRadius: 12.0,
+          drawerIndicatorSchemeColor: SchemeColor.primary,
+          bottomNavigationBarMutedUnselectedLabel: false,
+          bottomNavigationBarMutedUnselectedIcon: false,
+          menuRadius: 8.0,
+          menuElevation: 3.0,
+          menuBarRadius: 0.0,
+          menuBarElevation: 2.0,
+          menuBarShadowColor: Color(0x00000000),
+          navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationBarMutedUnselectedLabel: false,
+          navigationBarSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationBarMutedUnselectedIcon: false,
+          navigationBarIndicatorSchemeColor: SchemeColor.primary,
+          navigationBarIndicatorOpacity: 1.00,
+          navigationBarIndicatorRadius: 12.0,
+          navigationRailSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationRailMutedUnselectedLabel: false,
+          navigationRailSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationRailMutedUnselectedIcon: false,
+          navigationRailIndicatorSchemeColor: SchemeColor.primary,
+          navigationRailIndicatorOpacity: 1.00,
+          navigationRailIndicatorRadius: 12.0,
+          navigationRailBackgroundSchemeColor: SchemeColor.surface,
+        ),
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+          keepPrimary: true,
+        ),
+        tones: FlexTones.jolly(Brightness.light),
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        useMaterial3: true,
       ),
+      darkTheme: FlexThemeData.dark(
+        fontFamily: 'Sora',
+        scheme: FlexScheme.orangeM3,
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+        blendLevel: 2,
+        subThemesData: const FlexSubThemesData(
+          blendTextTheme: true,
+          useTextTheme: true,
+          useM2StyleDividerInM3: true,
+          defaultRadius: 12.0,
+          elevatedButtonSchemeColor: SchemeColor.onPrimaryContainer,
+          elevatedButtonSecondarySchemeColor: SchemeColor.primaryContainer,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          toggleButtonsBorderSchemeColor: SchemeColor.primary,
+          segmentedButtonSchemeColor: SchemeColor.primary,
+          segmentedButtonBorderSchemeColor: SchemeColor.primary,
+          unselectedToggleIsColored: true,
+          sliderValueTinted: true,
+          inputDecoratorSchemeColor: SchemeColor.primary,
+          inputDecoratorBackgroundAlpha: 43,
+          inputDecoratorUnfocusedHasBorder: false,
+          inputDecoratorFocusedBorderWidth: 1.0,
+          inputDecoratorPrefixIconSchemeColor: SchemeColor.primary,
+          fabUseShape: true,
+          fabAlwaysCircular: true,
+          fabSchemeColor: SchemeColor.primary,
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          drawerIndicatorRadius: 12.0,
+          drawerIndicatorSchemeColor: SchemeColor.primary,
+          bottomNavigationBarMutedUnselectedLabel: false,
+          bottomNavigationBarMutedUnselectedIcon: false,
+          menuRadius: 8.0,
+          menuElevation: 3.0,
+          menuBarRadius: 0.0,
+          menuBarElevation: 2.0,
+          menuBarShadowColor: Color(0x00000000),
+          navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationBarMutedUnselectedLabel: false,
+          navigationBarSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationBarMutedUnselectedIcon: false,
+          navigationBarIndicatorSchemeColor: SchemeColor.primary,
+          navigationBarIndicatorOpacity: 1.00,
+          navigationBarIndicatorRadius: 12.0,
+          navigationRailSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationRailMutedUnselectedLabel: false,
+          navigationRailSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationRailMutedUnselectedIcon: false,
+          navigationRailIndicatorSchemeColor: SchemeColor.primary,
+          navigationRailIndicatorOpacity: 1.00,
+          navigationRailIndicatorRadius: 12.0,
+          navigationRailBackgroundSchemeColor: SchemeColor.surface,
+        ),
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+        ),
+        tones: FlexTones.jolly(Brightness.dark),
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
       home: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
           title: Obx(
             () => iconButton(
               polarController.isDeviceConnected.value,
