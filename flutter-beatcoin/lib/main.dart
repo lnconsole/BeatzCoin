@@ -1,8 +1,39 @@
+import 'package:beatcoin/pages/devices.dart';
+import 'package:beatcoin/pages/home.dart';
+import 'package:beatcoin/pages/leaderboard.dart';
+import 'package:beatcoin/pages/profile.dart';
+import 'package:beatcoin/pages/workout.dart';
+import 'package:beatcoin/services/nostr.dart';
+import 'package:beatcoin/services/polar.dart';
+import 'package:beatcoin/services/rewards.dart';
+import 'package:beatcoin/services/workout.dart';
 import 'package:flutter/material.dart';
-import 'package:polar/polar.dart';
-import 'package:uuid/uuid.dart';
+import 'package:get/get.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  final prefs = await SharedPreferences.getInstance();
+  final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
+  await nostrService.init();
+  final polarService = PolarService();
+  final workoutService = WorkoutService();
+  final rewardService = RewardsService();
+
+  Get.put(nostrService);
+  Get.put(polarService);
+  Get.put(workoutService);
+  Get.put(rewardService);
+
   runApp(const MyApp());
 }
 
@@ -15,162 +46,308 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  static const identifier = '<POLAR_DEVICE_ID_HERE>';
+  var _currentIndex = 0;
+  final _disconnectedIconAssetName =
+      'assets/icons/plug-disconnected-24-regular.svg';
+  final _connectedIconAssetName = 'assets/icons/heart-rate.svg';
 
-  final polar = Polar();
-  final logs = ['Service started'];
+  Widget _selectedPage() {
+    switch (_currentIndex) {
+      case 1:
+        return WorkoutPage();
+      case 2:
+        return LeaderboardPage();
+      case 3:
+        return ProfilePage();
+      case 4:
+        return DevicesPage();
+      default:
+        return HomePage();
+    }
+  }
 
-  PolarExerciseEntry? exerciseEntry;
+  Widget _fab(int currentIndex, WorkoutService workoutService) {
+    if (currentIndex == 1) {
+      return Obx(
+        () => FloatingActionButton(
+          onPressed: () {
+            workoutService.running.value
+                ? workoutService.stopWorkout()
+                : workoutService.startWorkout();
+          },
+          child: Icon(
+            workoutService.running.value ? Icons.stop : Icons.play_arrow,
+          ),
+        ),
+      );
+    }
 
-  @override
-  void initState() {
-    super.initState();
-
-    // polar
-    //     .searchForDevice()
-    //     .listen((e) => log('Found device in scan: ${e.deviceId}'));
-    polar.batteryLevel.listen((e) => log('Battery: ${e.level}'));
-    polar.deviceConnecting.listen((_) => log('Device connecting'));
-    polar.deviceConnected.listen((_) => log('Device connected'));
-    polar.deviceDisconnected.listen((_) => log('Device disconnected'));
+    return Container();
   }
 
   @override
   Widget build(BuildContext context) {
+    PolarService polarController = Get.find();
+    WorkoutService workoutService = Get.find();
+
+    Widget iconButton(bool deviceConnected) {
+      return FilledButton.icon(
+        onPressed: () {
+          setState(() {
+            _currentIndex = 4;
+          });
+        },
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith(
+            (states) {
+              if (deviceConnected) {
+                return Colors.green[50];
+              }
+              return Colors.red[50];
+            },
+          ),
+          overlayColor: MaterialStateProperty.resolveWith(
+            (states) {
+              if (deviceConnected) {
+                return Colors.green[100];
+              }
+              return Colors.red[100];
+            },
+          ),
+        ),
+        icon: SvgPicture.asset(
+          deviceConnected
+              ? _connectedIconAssetName
+              : _disconnectedIconAssetName,
+          width: 24,
+          height: 24,
+          colorFilter: ColorFilter.mode(
+            deviceConnected ? Colors.green[400]! : Colors.red[400]!,
+            BlendMode.srcIn,
+          ),
+        ),
+        label: deviceConnected
+            ? Container(
+                height: 0,
+                width: 0,
+              )
+            : Text(
+                'connect',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
+                ),
+              ),
+      );
+    }
+
     return MaterialApp(
+      // Theme config for FlexColorScheme version 7.1.x. Make sure you use
+// same or higher package version, but still same major version. If you
+// use a lower package version, some properties may not be supported.
+// In that case remove them after copying this theme to your app.
+      theme: FlexThemeData.light(
+        fontFamily: 'Sora',
+        scheme: FlexScheme.orangeM3,
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+        blendLevel: 1,
+        subThemesData: const FlexSubThemesData(
+          useTextTheme: true,
+          useM2StyleDividerInM3: true,
+          defaultRadius: 12.0,
+          elevatedButtonSchemeColor: SchemeColor.onPrimaryContainer,
+          elevatedButtonSecondarySchemeColor: SchemeColor.primaryContainer,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          toggleButtonsBorderSchemeColor: SchemeColor.primary,
+          segmentedButtonSchemeColor: SchemeColor.primary,
+          segmentedButtonBorderSchemeColor: SchemeColor.primary,
+          unselectedToggleIsColored: true,
+          sliderValueTinted: true,
+          inputDecoratorSchemeColor: SchemeColor.primary,
+          inputDecoratorBackgroundAlpha: 31,
+          inputDecoratorUnfocusedHasBorder: false,
+          inputDecoratorFocusedBorderWidth: 1.0,
+          inputDecoratorPrefixIconSchemeColor: SchemeColor.primary,
+          fabUseShape: true,
+          fabAlwaysCircular: true,
+          fabSchemeColor: SchemeColor.primary,
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          drawerIndicatorRadius: 12.0,
+          drawerIndicatorSchemeColor: SchemeColor.primary,
+          bottomNavigationBarMutedUnselectedLabel: false,
+          bottomNavigationBarMutedUnselectedIcon: false,
+          menuRadius: 8.0,
+          menuElevation: 3.0,
+          menuBarRadius: 0.0,
+          menuBarElevation: 2.0,
+          menuBarShadowColor: Color(0x00000000),
+          navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationBarMutedUnselectedLabel: false,
+          navigationBarSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationBarMutedUnselectedIcon: false,
+          navigationBarIndicatorSchemeColor: SchemeColor.primary,
+          navigationBarIndicatorOpacity: 1.00,
+          navigationBarIndicatorRadius: 12.0,
+          navigationRailSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationRailMutedUnselectedLabel: false,
+          navigationRailSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationRailMutedUnselectedIcon: false,
+          navigationRailIndicatorSchemeColor: SchemeColor.primary,
+          navigationRailIndicatorOpacity: 1.00,
+          navigationRailIndicatorRadius: 12.0,
+          navigationRailBackgroundSchemeColor: SchemeColor.surface,
+        ),
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+          keepPrimary: true,
+        ),
+        tones: FlexTones.jolly(Brightness.light),
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        useMaterial3: true,
+      ),
+      darkTheme: FlexThemeData.dark(
+        fontFamily: 'Sora',
+        scheme: FlexScheme.orangeM3,
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+        blendLevel: 2,
+        subThemesData: const FlexSubThemesData(
+          blendTextTheme: true,
+          useTextTheme: true,
+          useM2StyleDividerInM3: true,
+          defaultRadius: 12.0,
+          elevatedButtonSchemeColor: SchemeColor.onPrimaryContainer,
+          elevatedButtonSecondarySchemeColor: SchemeColor.primaryContainer,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          toggleButtonsBorderSchemeColor: SchemeColor.primary,
+          segmentedButtonSchemeColor: SchemeColor.primary,
+          segmentedButtonBorderSchemeColor: SchemeColor.primary,
+          unselectedToggleIsColored: true,
+          sliderValueTinted: true,
+          inputDecoratorSchemeColor: SchemeColor.primary,
+          inputDecoratorBackgroundAlpha: 43,
+          inputDecoratorUnfocusedHasBorder: false,
+          inputDecoratorFocusedBorderWidth: 1.0,
+          inputDecoratorPrefixIconSchemeColor: SchemeColor.primary,
+          fabUseShape: true,
+          fabAlwaysCircular: true,
+          fabSchemeColor: SchemeColor.primary,
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          drawerIndicatorRadius: 12.0,
+          drawerIndicatorSchemeColor: SchemeColor.primary,
+          bottomNavigationBarMutedUnselectedLabel: false,
+          bottomNavigationBarMutedUnselectedIcon: false,
+          menuRadius: 8.0,
+          menuElevation: 3.0,
+          menuBarRadius: 0.0,
+          menuBarElevation: 2.0,
+          menuBarShadowColor: Color(0x00000000),
+          navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationBarMutedUnselectedLabel: false,
+          navigationBarSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationBarMutedUnselectedIcon: false,
+          navigationBarIndicatorSchemeColor: SchemeColor.primary,
+          navigationBarIndicatorOpacity: 1.00,
+          navigationBarIndicatorRadius: 12.0,
+          navigationRailSelectedLabelSchemeColor: SchemeColor.primary,
+          navigationRailMutedUnselectedLabel: false,
+          navigationRailSelectedIconSchemeColor: SchemeColor.onPrimary,
+          navigationRailMutedUnselectedIcon: false,
+          navigationRailIndicatorSchemeColor: SchemeColor.primary,
+          navigationRailIndicatorOpacity: 1.00,
+          navigationRailIndicatorRadius: 12.0,
+          navigationRailBackgroundSchemeColor: SchemeColor.surface,
+        ),
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+        ),
+        tones: FlexTones.jolly(Brightness.dark),
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Polar example app'),
-          actions: [
-            PopupMenuButton(
-              itemBuilder: (context) => RecordingAction.values
-                  .map((e) => PopupMenuItem(value: e, child: Text(e.name)))
-                  .toList(),
-              onSelected: handleRecordingAction,
-              child: const IconButton(
-                icon: Icon(Icons.fiber_manual_record),
-                disabledColor: Colors.white,
-                onPressed: null,
+          elevation: 0,
+          title: Obx(
+            () => iconButton(
+              polarController.isDeviceConnected.value,
+            ),
+          ),
+        ),
+        bottomNavigationBar: SalomonBottomBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          items: [
+            /// Home
+            SalomonBottomBarItem(
+              icon: Icon(Icons.home),
+              title: Text(
+                "Home",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
               ),
+              selectedColor: Colors.orange,
             ),
-            IconButton(
-              icon: const Icon(Icons.stop),
-              onPressed: () {
-                log('Disconnecting from device: $identifier');
-                polar.disconnectFromDevice(identifier);
-              },
+
+            /// Likes
+            SalomonBottomBarItem(
+              icon: Icon(Icons.play_arrow),
+              title: Text(
+                "Workout",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
+              selectedColor: Colors.orange,
             ),
-            IconButton(
-              icon: const Icon(Icons.play_arrow),
-              onPressed: () {
-                log('Connecting to device: $identifier');
-                polar.connectToDevice(identifier);
-                streamWhenReady();
-              },
+
+            /// Search
+            SalomonBottomBarItem(
+              icon: Icon(Icons.leaderboard),
+              title: Text(
+                "Leaderboard",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
+              selectedColor: Colors.orange,
+            ),
+
+            /// Profile
+            SalomonBottomBarItem(
+              icon: Icon(Icons.person),
+              title: Text(
+                "Profile",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Sora',
+                ),
+              ),
+              selectedColor: Colors.orange,
             ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(10),
-          shrinkWrap: true,
-          children: logs.reversed.map(Text.new).toList(),
+        floatingActionButton: _fab(
+          _currentIndex,
+          workoutService,
         ),
+        body: _selectedPage(),
       ),
     );
   }
 
-  void streamWhenReady() async {
-    await polar.sdkFeatureReady.firstWhere(
-      (e) =>
-          e.identifier == identifier &&
-          e.feature == PolarSdkFeature.onlineStreaming,
-    );
-    final availabletypes =
-        await polar.getAvailableOnlineStreamDataTypes(identifier);
-
-    debugPrint('available types: $availabletypes');
-
-    if (availabletypes.contains(PolarDataType.hr)) {
-      polar
-          .startHrStreaming(identifier)
-          .listen((e) => log('Heart rate: ${e.samples.map((e) => e.hr)}'));
-    }
-    // if (availabletypes.contains(PolarDataType.ecg)) {
-    //   polar
-    //       .startEcgStreaming(identifier)
-    //       .listen((e) => log('ECG data received'));
-    // }
-    // if (availabletypes.contains(PolarDataType.acc)) {
-    //   polar
-    //       .startAccStreaming(identifier)
-    //       .listen((e) => log('ACC data received'));
-    // }
+  @override
+  void dispose() {
+    NostrService nostr = Get.find();
+    nostr.dispose();
+    super.dispose();
   }
-
-  void log(String log) {
-    // ignore: avoid_print
-    print(log);
-    setState(() {
-      logs.add(log);
-    });
-  }
-
-  Future<void> handleRecordingAction(RecordingAction action) async {
-    switch (action) {
-      case RecordingAction.start:
-        log('Starting recording');
-        await polar.startRecording(
-          identifier,
-          exerciseId: const Uuid().v4(),
-          interval: RecordingInterval.interval_1s,
-          sampleType: SampleType.rr,
-        );
-        log('Started recording');
-        break;
-      case RecordingAction.stop:
-        log('Stopping recording');
-        await polar.stopRecording(identifier);
-        log('Stopped recording');
-        break;
-      case RecordingAction.status:
-        log('Getting recording status');
-        final status = await polar.requestRecordingStatus(identifier);
-        log('Recording status: $status');
-        break;
-      case RecordingAction.list:
-        log('Listing recordings');
-        final entries = await polar.listExercises(identifier);
-        log('Recordings: $entries');
-        // H10 can only store one recording at a time
-        exerciseEntry = entries.first;
-        break;
-      case RecordingAction.fetch:
-        log('Fetching recording');
-        if (exerciseEntry == null) {
-          log('Exercises not yet listed');
-          await handleRecordingAction(RecordingAction.list);
-        }
-        final entry = await polar.fetchExercise(identifier, exerciseEntry!);
-        log('Fetched recording: $entry');
-        break;
-      case RecordingAction.remove:
-        log('Removing recording');
-        if (exerciseEntry == null) {
-          log('No exercise to remove. Try calling list first.');
-          return;
-        }
-        await polar.removeExercise(identifier, exerciseEntry!);
-        log('Removed recording');
-        break;
-    }
-  }
-}
-
-enum RecordingAction {
-  start,
-  stop,
-  status,
-  list,
-  fetch,
-  remove,
 }
