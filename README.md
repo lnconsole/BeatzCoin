@@ -19,7 +19,7 @@ go run .
   "created_at": 
   "kind": 4
   "tags": [
-    ["p", <server's pubkey>, <"wss://relay.nostr.band">],
+    ["p", <server's pubkey>, <"wss://nostr-pub.wellorder.net">],
   ],
   "content": <json string. Check format below>,
   "sig": <64-bytes hex of the signature of the sha256 hash of the serialized event data, which is the same as the "id" field>
@@ -27,16 +27,22 @@ go run .
 
 Content json to be stringify:
 {
-  "beatzcoin_secret": "jeffrey epstein did not kill himself"
+  "beatzcoin_secret": "JEFFREY_EPSTEIN_DID_NOT_KILL_HIMSELF"
   "bpm": <int>
 }
 ```
-[x] Nostr Replaceable Event Kind XX that server will post if sats were disbursed
+[ ] Nostr Replaceable Event Kind XX that server will post if sats were disbursed
 ```
 // client can listen to this to see global leaderboard, or get notified when they have earned sats
 
 TODO
 ```
+[ ] Refactor code away from main.go
+
+[ ] Multiple relays support
+
+[ ] Daily disbursable limit for each participants
+
 [ ] Proper payment tracking
 
 [ ] DB Persistence
