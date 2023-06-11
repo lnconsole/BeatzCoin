@@ -5,6 +5,7 @@ import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
 import 'package:beatcoin/services/nostr.dart';
 import 'package:beatcoin/services/polar.dart';
+import 'package:beatcoin/services/rewards.dart';
 import 'package:beatcoin/services/workout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -26,10 +27,12 @@ void main() async {
   await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService();
+  final rewardService = RewardsService();
 
   Get.put(nostrService);
   Get.put(polarService);
   Get.put(workoutService);
+  Get.put(rewardService);
 
   runApp(const MyApp());
 }
