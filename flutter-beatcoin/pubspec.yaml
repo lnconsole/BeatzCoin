@@ -43,6 +43,7 @@ dependencies:
   nostr: ^1.4.0
   shared_preferences: ^2.1.2
   flex_color_scheme: ^7.1.2
+  wakelock: ^0.4.0
 
 dev_dependencies:
   flutter_test:

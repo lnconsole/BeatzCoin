@@ -26,7 +26,7 @@ void main() async {
   final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
   await nostrService.init();
   final polarService = PolarService();
-  final workoutService = WorkoutService();
+  final workoutService = WorkoutService(nostrService);
   final rewardService = RewardsService();
 
   Get.put(nostrService);

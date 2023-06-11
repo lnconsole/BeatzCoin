@@ -43,6 +43,16 @@ class NostrService extends GetxService {
     return await _prefs.remove(_pkKey);
   }
 
+  void sendEncryptedDM(String content) async {
+    final e = EncryptedDirectMessage.redact(
+      _keychain.private,
+      _keychain.public,
+      content,
+    );
+    _ws.add(e.serialize());
+    print(e);
+  }
+
   Future _connectToRelay() async {
     _ws = await WebSocket.connect(
       _relayUrl,
@@ -55,8 +65,8 @@ class NostrService extends GetxService {
           authors: [
             _keychain.public,
           ],
-          kinds: [0],
-          since: 1672559861,
+          kinds: [0, 4],
+          since: 1686306208,
           limit: 450,
         )
       ],
@@ -77,13 +87,28 @@ class NostrService extends GetxService {
   }
 
   Future _handleEvent(Event event) async {
+    switch (event.kind) {
+      case 0:
+        await _handleMetadataMessage(event);
+        break;
+      case 4:
+        _handleEncryptedDM(event);
+      default:
+    }
+  }
+
+  Future _handleMetadataMessage(Event event) async {
     final p = jsonDecode(event.content);
-    print(p);
 
     profile.update((pInstance) {
       pInstance?.name = p['display_name'];
       pInstance?.pictureUrl = p['picture'];
     });
+  }
+
+  Future _handleEncryptedDM(Event event) async {
+    final dm = EncryptedDirectMessage.receive(event);
+    print(dm.getPlaintext(_keychain.private));
   }
 
   Future<bool> _setPrivateKey(String privateKey) async {
