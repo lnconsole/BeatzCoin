@@ -43,10 +43,10 @@ class NostrService extends GetxService {
     return await _prefs.remove(_pkKey);
   }
 
-  void sendEncryptedDM(String content) async {
+  void sendEncryptedDM(String receiverPubkey, String content) async {
     final e = EncryptedDirectMessage.redact(
       _keychain.private,
-      _keychain.public,
+      receiverPubkey,
       content,
     );
     _ws.add(e.serialize());
@@ -103,6 +103,7 @@ class NostrService extends GetxService {
     profile.update((pInstance) {
       pInstance?.name = p['display_name'];
       pInstance?.pictureUrl = p['picture'];
+      pInstance?.lud16 = p['lud16'] ?? '';
     });
   }
 
@@ -128,13 +129,15 @@ class NostrService extends GetxService {
 class NostrProfile {
   String name;
   String pictureUrl;
+  String lud16;
 
   NostrProfile(
     this.name,
     this.pictureUrl,
+    this.lud16,
   );
 
   factory NostrProfile.empty() {
-    return NostrProfile("", "");
+    return NostrProfile("", "", "");
   }
 }
