@@ -40,8 +40,7 @@ Content json to be stringify:
   "created_at": 
   "kind": 33333
   "tags": [
-    ["d", "history"],
-    ["p", <user pubkey>, <"wss://nostr-pub.wellorder.net">],
+    ["d", <user pubkey>],
   ],
   "content": <json string. Check format below>,
   "sig": <64-bytes hex of the signature of the sha256 hash of the serialized event data, which is the same as the "id" field>
@@ -53,13 +52,11 @@ Content json to be stringify:
     {
       "2023/06/12": {
         "sats_earned": int
-        ????
       }
     },
     {
       "2023/06/11": {
         "sats_earned": int
-        ????
       }
     },
     ...
