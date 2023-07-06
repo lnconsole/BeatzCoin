@@ -25,6 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Card(
                       child: ListTile(
+                        isThreeLine: true,
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(
                             nostrService.profile.value.pictureUrl,
@@ -32,6 +33,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         title: Text(
                           nostrService.profile.value.name,
+                        ),
+                        subtitle: Text(
+                          nostrService.profile.value.lud16,
                         ),
                         trailing: FilledButton.icon(
                           onPressed: () {},
