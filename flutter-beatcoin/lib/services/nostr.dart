@@ -7,10 +7,19 @@ import 'dart:io';
 
 class NostrService extends GetxService {
   String _relayUrl = '';
+  final _pkKey = 'pk';
+  static const eventKindMetadata = 0;
+  static const eventKindEncryptedDM = 4;
+  static const eventKindBeatzcoinHistory = 33333;
+  final _interestingEvents = [
+    eventKindMetadata,
+    eventKindEncryptedDM,
+    eventKindBeatzcoinHistory,
+  ];
   late SharedPreferences _prefs;
   late WebSocket _ws;
-  final _pkKey = 'pk';
   late Keychain _keychain;
+
   final loggedIn = false.obs;
   final pubKey = ''.obs;
   final profile = NostrProfile.empty().obs;
@@ -50,7 +59,6 @@ class NostrService extends GetxService {
       content,
     );
     _ws.add(e.serialize());
-    print(e);
   }
 
   Future _connectToRelay() async {
@@ -65,7 +73,7 @@ class NostrService extends GetxService {
           authors: [
             _keychain.public,
           ],
-          kinds: [0, 4],
+          kinds: _interestingEvents,
           since: 1686306208,
           limit: 450,
         )
@@ -81,18 +89,21 @@ class NostrService extends GetxService {
           _handleEvent(e.message);
           break;
         default:
-          print(event);
       }
     });
   }
 
   Future _handleEvent(Event event) async {
     switch (event.kind) {
-      case 0:
+      case NostrService.eventKindMetadata:
         await _handleMetadataMessage(event);
         break;
-      case 4:
+      case NostrService.eventKindEncryptedDM:
         _handleEncryptedDM(event);
+        break;
+      case NostrService.eventKindBeatzcoinHistory:
+        _handleBeatzcoinEvent(event);
+        break;
       default:
     }
   }
@@ -109,8 +120,10 @@ class NostrService extends GetxService {
 
   Future _handleEncryptedDM(Event event) async {
     final dm = EncryptedDirectMessage.receive(event);
-    print(dm.getPlaintext(_keychain.private));
+    print('received encrypted dm');
   }
+
+  Future _handleBeatzcoinEvent(Event event) async {}
 
   Future<bool> _setPrivateKey(String privateKey) async {
     String pk = privateKey;
@@ -139,5 +152,35 @@ class NostrProfile {
 
   factory NostrProfile.empty() {
     return NostrProfile("", "", "");
+  }
+}
+
+class WorkoutDetails {
+  DateTime date;
+  int satsEarned;
+
+  WorkoutDetails(this.date, this.satsEarned);
+
+  factory WorkoutDetails.fromJSON(Map<String, dynamic> json) {
+    var satsEarned = int.tryParse(json['sats_earned']);
+    satsEarned ??= 0;
+    var date = DateTime.tryParse(json['date']);
+    date ??= DateTime.now();
+
+    return WorkoutDetails(date, satsEarned);
+  }
+}
+
+class BeatzcoinEventContent {
+  List<WorkoutDetails> workout;
+
+  BeatzcoinEventContent(this.workout);
+
+  factory BeatzcoinEventContent.fromJSON(Map<String, dynamic> json) {
+    var w = json['workout'] as List<Map<String, dynamic>>;
+
+    return BeatzcoinEventContent(
+      w.map((e) => WorkoutDetails.fromJSON(e)).toList(),
+    );
   }
 }

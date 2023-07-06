@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:beatcoin/services/polar.dart';
-import 'package:wakelock/wakelock.dart';
 import 'package:beatcoin/services/nostr.dart';
 import 'package:beatcoin/env.dart';
 import 'package:get/get.dart';
@@ -23,7 +22,6 @@ class WorkoutService extends GetxService {
   );
 
   void startWorkout() {
-    Wakelock.enable();
     running.value = true;
     start.value = DateTime.now();
 
@@ -31,7 +29,7 @@ class WorkoutService extends GetxService {
       _formatWorkoutTime();
     });
 
-    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
       if (_polarService.heartRate.value >= _heartRateThreshold) {
         final message = WorkoutBpmEventContent(
           Env.serverSecret,
@@ -55,7 +53,6 @@ class WorkoutService extends GetxService {
   }
 
   void stopWorkout() {
-    Wakelock.disable();
     running.value = false;
     _workoutDurationTimer.cancel();
     _workoutRewardsTimer.cancel();
