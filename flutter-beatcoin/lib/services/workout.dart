@@ -3,17 +3,19 @@ import 'dart:convert';
 import 'package:beatcoin/services/polar.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:beatcoin/services/nostr.dart';
+import 'package:beatcoin/env.dart';
 import 'package:get/get.dart';
 
 class WorkoutService extends GetxService {
+  final _heartRateThreshold = 160;
   final start = DateTime.now().obs;
   final end = DateTime.now().obs;
   final duration = '00:00:00'.obs;
   final running = false.obs;
   late Timer _workoutDurationTimer;
   late Timer _workoutRewardsTimer;
-  NostrService _nostrService;
-  PolarService _polarService;
+  final NostrService _nostrService;
+  final PolarService _polarService;
 
   WorkoutService(
     this._nostrService,
@@ -29,25 +31,18 @@ class WorkoutService extends GetxService {
       _formatWorkoutTime();
     });
 
-    final message = {
-      'beatzcoin_secret': 'secret',
-      'bpm': 181,
-    };
-    _nostrService.sendEncryptedDM(
-      '4076e3081853a23cb5b826b0501a93d3c74a4db6a3d3faad5b421dfe01fd9bf1',
-      jsonEncode(message),
-    );
-
-    // _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-    //   final message = {
-    //     'beatzcoin_secret': 'JEFFREY_EPSTEIN_DID_NOT_KILL_HIMSELF',
-    //     'bpm': 181,
-    //   };
-    //   _nostrService.sendEncryptedDM(
-    //     '4076e3081853a23cb5b826b0501a93d3c74a4db6a3d3faad5b421dfe01fd9bf1',
-    //     jsonEncode(message),
-    //   );
-    // });
+    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (_polarService.heartRate.value >= _heartRateThreshold) {
+        final message = WorkoutBpmEventContent(
+          Env.serverSecret,
+          _polarService.heartRate.value,
+        );
+        _nostrService.sendEncryptedDM(
+          Env.serverPubkey,
+          jsonEncode(message.toJSON()),
+        );
+      }
+    });
   }
 
   void _formatWorkoutTime() {
