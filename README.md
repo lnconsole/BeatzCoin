@@ -50,14 +50,12 @@ Content json to be stringify:
 {
   "workout": [
     {
-      "2023/06/12": {
-        "sats_earned": int
-      }
+      "date": "2023/06/12",
+      "sats_earned": int,
     },
     {
-      "2023/06/11": {
-        "sats_earned": int
-      }
+      "date": "2023/06/11",
+      "sats_earned": int,
     },
     ...
   ]
