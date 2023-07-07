@@ -23,7 +23,7 @@ void main() async {
   ]);
 
   final prefs = await SharedPreferences.getInstance();
-  final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
+  final nostrService = NostrService(prefs, 'ws://3.12.78.99:7447');
   await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService(

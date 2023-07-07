@@ -1,5 +1,7 @@
 import 'dart:convert';
-
+import 'package:beatcoin/env.dart';
+import 'package:beatcoin/services/models.dart';
+import 'package:beatcoin/services/rewards.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nostr/nostr.dart';
@@ -11,11 +13,6 @@ class NostrService extends GetxService {
   static const eventKindMetadata = 0;
   static const eventKindEncryptedDM = 4;
   static const eventKindBeatzcoinHistory = 33333;
-  final _interestingEvents = [
-    eventKindMetadata,
-    eventKindEncryptedDM,
-    eventKindBeatzcoinHistory,
-  ];
   late SharedPreferences _prefs;
   late WebSocket _ws;
   late Keychain _keychain;
@@ -59,6 +56,7 @@ class NostrService extends GetxService {
       content,
     );
     _ws.add(e.serialize());
+    print('sent kind 4');
   }
 
   Future _connectToRelay() async {
@@ -73,7 +71,15 @@ class NostrService extends GetxService {
           authors: [
             _keychain.public,
           ],
-          kinds: _interestingEvents,
+          kinds: [NostrService.eventKindMetadata],
+          since: 1686306208,
+          limit: 450,
+        ),
+        Filter(
+          authors: [
+            Env.serverPubkey,
+          ],
+          kinds: [NostrService.eventKindBeatzcoinHistory],
           since: 1686306208,
           limit: 450,
         )
@@ -123,7 +129,16 @@ class NostrService extends GetxService {
     print('received encrypted dm');
   }
 
-  Future _handleBeatzcoinEvent(Event event) async {}
+  Future _handleBeatzcoinEvent(Event event) async {
+    print('got 33333');
+    final eventContent = BeatzcoinEventContent.fromJSON(
+      jsonDecode(
+        event.content,
+      ),
+    );
+    final rewardService = Get.find<RewardsService>();
+    rewardService.setWorkoutHistory(eventContent.workout);
+  }
 
   Future<bool> _setPrivateKey(String privateKey) async {
     String pk = privateKey;
@@ -136,51 +151,5 @@ class NostrService extends GetxService {
     loggedIn.value = true;
 
     return await _prefs.setString(_pkKey, pk);
-  }
-}
-
-class NostrProfile {
-  String name;
-  String pictureUrl;
-  String lud16;
-
-  NostrProfile(
-    this.name,
-    this.pictureUrl,
-    this.lud16,
-  );
-
-  factory NostrProfile.empty() {
-    return NostrProfile("", "", "");
-  }
-}
-
-class WorkoutDetails {
-  DateTime date;
-  int satsEarned;
-
-  WorkoutDetails(this.date, this.satsEarned);
-
-  factory WorkoutDetails.fromJSON(Map<String, dynamic> json) {
-    var satsEarned = int.tryParse(json['sats_earned']);
-    satsEarned ??= 0;
-    var date = DateTime.tryParse(json['date']);
-    date ??= DateTime.now();
-
-    return WorkoutDetails(date, satsEarned);
-  }
-}
-
-class BeatzcoinEventContent {
-  List<WorkoutDetails> workout;
-
-  BeatzcoinEventContent(this.workout);
-
-  factory BeatzcoinEventContent.fromJSON(Map<String, dynamic> json) {
-    var w = json['workout'] as List<Map<String, dynamic>>;
-
-    return BeatzcoinEventContent(
-      w.map((e) => WorkoutDetails.fromJSON(e)).toList(),
-    );
   }
 }

@@ -10,9 +10,9 @@ class WorkoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    PolarService polarController = Get.find();
-    WorkoutService workoutService = Get.find();
-    RewardsService rewardService = Get.find();
+    final polarController = Get.find<PolarService>();
+    final workoutService = Get.find<WorkoutService>();
+    final rewardService = Get.find<RewardsService>();
 
     return SingleChildScrollView(
       child: Column(

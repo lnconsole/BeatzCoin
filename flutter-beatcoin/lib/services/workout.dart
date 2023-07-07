@@ -29,7 +29,7 @@ class WorkoutService extends GetxService {
       _formatWorkoutTime();
     });
 
-    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
+    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_polarService.heartRate.value >= _heartRateThreshold) {
         final message = WorkoutBpmEventContent(
           Env.serverSecret,
@@ -40,6 +40,16 @@ class WorkoutService extends GetxService {
           jsonEncode(message.toJSON()),
         );
       }
+
+      // use this code for testing
+      // final message = WorkoutBpmEventContent(
+      //   Env.serverSecret,
+      //   180,
+      // );
+      // _nostrService.sendEncryptedDM(
+      //   Env.serverPubkey,
+      //   jsonEncode(message.toJSON()),
+      // );
     });
   }
 
