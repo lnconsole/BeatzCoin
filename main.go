@@ -44,11 +44,11 @@ type Profile struct {
 }
 
 const (
-	thresholdRate = 160
-	rewardMsat    = 1000
-	// dailySatsQuota = rewardMsat / 1000 * 300
-	dailySatsQuota = rewardMsat / 1000 * 30
-	dateFormat     = "2006/01/02"
+	thresholdRate  = 160
+	rewardMsat     = 1000
+	dailySatsQuota = rewardMsat / 1000 * 300
+	// dailySatsQuota = rewardMsat / 1000 * 30
+	dateFormat = "2006/01/02"
 )
 
 var (
@@ -158,6 +158,7 @@ LOOP:
 	go func(sub *nostr.Subscription) {
 		uniqueCh := bstr.Unique(sub.Events)
 		for evt := range uniqueCh {
+			log.Printf("got kind 4 by %s", evt.PubKey)
 			// decrypt content
 			decrypted, err := bstr.Decrypt(evt.PubKey, sk, evt.Content)
 			if err != nil {
@@ -198,6 +199,8 @@ LOOP:
 	// handle profile
 	go func() {
 		for p := range profilech {
+			log.Printf("handling profile of %s", p.Pubkey)
+
 			today := time.Now()
 
 			if p.Lud16 == nil {

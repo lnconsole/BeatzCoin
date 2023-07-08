@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	sm "github.com/SaveTheRbtz/generic-sync-map-go"
 	"github.com/nbd-wtf/go-nostr"
@@ -46,18 +45,6 @@ func Unique(all chan *nostr.Event) chan nostr.Event {
 			if _, ok := emittedAlready.LoadOrStore(event.ID, struct{}{}); !ok {
 				uniqueEvents <- *event
 			}
-		}
-	}()
-
-	go func() {
-		for {
-			count := 0
-			emittedAlready.Range(func(key string, value struct{}) bool {
-				count += 1
-				return true
-			})
-			log.Printf("size of emittedAlready: %d", count)
-			time.Sleep(5 * time.Minute)
 		}
 	}()
 
