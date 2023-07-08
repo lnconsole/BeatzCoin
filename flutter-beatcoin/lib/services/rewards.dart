@@ -11,8 +11,7 @@ class RewardsService extends GetxService {
       return;
     }
 
-    _satsEarned = sats;
-    satsEarnedFormatted.value = _satsEarned.toString();
+    _setSatsEarned(sats);
   }
 
   void setWorkoutHistory(List<WorkoutDetails> workout) {
@@ -24,11 +23,20 @@ class RewardsService extends GetxService {
       if (first.year == now.year &&
           first.month == now.month &&
           first.day == now.day) {
-        _satsEarned = workout.first.satsEarned;
-        satsEarnedFormatted.value = _satsEarned.toString();
+        _setSatsEarned(workout.first.satsEarned);
       }
 
       workoutHistory.value = workout;
     }
+  }
+
+  void clearWorkoutHistory() {
+    workoutHistory.value = [];
+    _setSatsEarned(0);
+  }
+
+  void _setSatsEarned(int satsEarned) {
+    _satsEarned = satsEarned;
+    satsEarnedFormatted.value = _satsEarned.toString();
   }
 }

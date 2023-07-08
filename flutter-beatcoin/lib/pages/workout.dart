@@ -35,6 +35,17 @@ class WorkoutPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Drop the Beatz',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24.0,
+              ),
+            ),
+          ),
           Obx(
             () => Padding(
               padding: const EdgeInsets.symmetric(
@@ -65,6 +76,8 @@ class WorkoutPage extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(
                       Icons.bolt_outlined,
+                      color: Color.fromARGB(255, 255, 234, 0),
+                      size: 40,
                     ),
                     title: Text(
                       rewardService.satsEarnedFormatted.value,
@@ -92,6 +105,7 @@ class WorkoutPage extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(
                       Icons.timer_outlined,
+                      size: 40,
                     ),
                     title: Text(
                       workoutService.duration.string,

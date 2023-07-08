@@ -14,20 +14,38 @@ class HomePage extends StatelessWidget {
       child: Obx(
         () => Column(
           mainAxisSize: MainAxisSize.max,
-          children: rewardService.workoutHistory
-              .map(
-                (e) => Card(
-                  child: ListTile(
-                    title: Text(
-                      'Sats Earned: ${e.satsEarned}',
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Workout History',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24.0,
+                ),
+              ),
+            ),
+            ...rewardService.workoutHistory
+                .map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
                     ),
-                    subtitle: Text(
-                      DateFormat('yyyy-MM-dd').format(e.date),
+                    child: Card(
+                      child: ListTile(
+                        title: Text(
+                          'Sats Earned: ${e.satsEarned}',
+                        ),
+                        subtitle: Text(
+                          DateFormat('yyyy-MM-dd').format(e.date),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              )
-              .toList(),
+                )
+                .toList(),
+          ],
         ),
       ),
     );

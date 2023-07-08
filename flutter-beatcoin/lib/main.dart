@@ -1,7 +1,6 @@
 import 'package:beatcoin/env.dart';
 import 'package:beatcoin/pages/devices.dart';
 import 'package:beatcoin/pages/home.dart';
-import 'package:beatcoin/pages/leaderboard.dart';
 import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
 import 'package:beatcoin/services/nostr.dart';
@@ -58,13 +57,13 @@ class _MyAppState extends State<MyApp> {
   Widget _selectedPage() {
     switch (_currentIndex) {
       case 1:
-        return WorkoutPage();
+        return const WorkoutPage();
       case 2:
-        return ProfilePage();
+        return const ProfilePage();
       case 3:
-        return DevicesPage();
+        return const DevicesPage();
       default:
-        return HomePage();
+        return const HomePage();
     }
   }
 
@@ -73,7 +72,7 @@ class _MyAppState extends State<MyApp> {
     WorkoutService workoutService,
     PolarService polarService,
   ) {
-    if (currentIndex == 1 && polarService.isDeviceConnected.value) {
+    if (currentIndex == 1 /*&& polarService.isDeviceConnected.value*/) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
@@ -152,10 +151,6 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MaterialApp(
-      // Theme config for FlexColorScheme version 7.1.x. Make sure you use
-// same or higher package version, but still same major version. If you
-// use a lower package version, some properties may not be supported.
-// In that case remove them after copying this theme to your app.
       theme: FlexThemeData.light(
         fontFamily: 'Sora',
         scheme: FlexScheme.orangeM3,
@@ -294,8 +289,8 @@ class _MyAppState extends State<MyApp> {
           items: [
             /// Home
             SalomonBottomBarItem(
-              icon: Icon(Icons.home),
-              title: Text(
+              icon: const Icon(Icons.home),
+              title: const Text(
                 "Home",
                 style: TextStyle(
                   fontSize: 12,
@@ -307,8 +302,8 @@ class _MyAppState extends State<MyApp> {
 
             /// Likes
             SalomonBottomBarItem(
-              icon: Icon(Icons.play_arrow),
-              title: Text(
+              icon: const Icon(Icons.play_arrow),
+              title: const Text(
                 "Workout",
                 style: TextStyle(
                   fontSize: 12,
@@ -320,8 +315,8 @@ class _MyAppState extends State<MyApp> {
 
             /// Search
             SalomonBottomBarItem(
-              icon: Icon(Icons.person),
-              title: Text(
+              icon: const Icon(Icons.person),
+              title: const Text(
                 "Profile",
                 style: TextStyle(
                   fontSize: 12,

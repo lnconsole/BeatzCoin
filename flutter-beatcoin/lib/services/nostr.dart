@@ -30,7 +30,31 @@ class NostrService extends GetxService {
     final pk = _prefs.getString(_pkKey);
     if (pk != null && pk != '') {
       await _setPrivateKey(pk);
+
       await _connectToRelay();
+
+      Request requestWithFilter = Request(
+        generate64RandomHexChars(),
+        [
+          Filter(
+            authors: [
+              _keychain.public,
+            ],
+            kinds: [NostrService.eventKindMetadata],
+            since: 1686306208,
+            limit: 450,
+          ),
+          Filter(
+            authors: [
+              Env.serverPubkey,
+            ],
+            kinds: [NostrService.eventKindBeatzcoinHistory],
+            since: 1686306208,
+            limit: 450,
+          ),
+        ],
+      );
+      _ws.add(requestWithFilter.serialize());
     }
   }
 
@@ -39,12 +63,37 @@ class NostrService extends GetxService {
   }
 
   Future<bool> setPrivateKey(String privateKey) async {
-    return await _setPrivateKey(privateKey);
+    await _connectToRelay();
+    final success = await _setPrivateKey(privateKey);
+
+    Request requestWithFilter = Request(
+      generate64RandomHexChars(),
+      [
+        Filter(
+          authors: [
+            _keychain.public,
+          ],
+          kinds: [NostrService.eventKindMetadata],
+          since: 1686306208,
+        ),
+        Filter(
+          authors: [
+            Env.serverPubkey,
+          ],
+          kinds: [NostrService.eventKindBeatzcoinHistory],
+          since: 1686306208,
+        ),
+      ],
+    );
+    _ws.add(requestWithFilter.serialize());
+
+    return success;
   }
 
   Future<bool> logout() async {
     pubKey.value = '';
     loggedIn.value = false;
+    _ws.close();
 
     return await _prefs.remove(_pkKey);
   }
@@ -79,30 +128,6 @@ class NostrService extends GetxService {
     _ws = await WebSocket.connect(
       _relayUrl,
     );
-
-    Request requestWithFilter = Request(
-      generate64RandomHexChars(),
-      [
-        Filter(
-          authors: [
-            _keychain.public,
-          ],
-          kinds: [NostrService.eventKindMetadata],
-          since: 1686306208,
-          limit: 450,
-        ),
-        Filter(
-          authors: [
-            Env.serverPubkey,
-          ],
-          kinds: [NostrService.eventKindBeatzcoinHistory],
-          since: 1686306208,
-          limit: 450,
-        ),
-      ],
-    );
-
-    _ws.add(requestWithFilter.serialize());
 
     _ws.listen((event) {
       final e = Message.deserialize(event);
@@ -145,8 +170,6 @@ class NostrService extends GetxService {
   }
 
   Future _handleBeatzcoinEvent(Event event) async {
-    print('got 33333');
-
     for (final tag in event.tags) {
       if (tag.contains(_keychain.public)) {
         final eventContent = BeatzcoinEventContent.fromJSON(
@@ -174,6 +197,7 @@ class NostrService extends GetxService {
 
     final success = await _prefs.setString(_pkKey, pk);
 
+    profile.value = NostrProfile.empty();
     loggedIn.value = true;
 
     return success;

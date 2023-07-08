@@ -1,4 +1,5 @@
 import 'package:beatcoin/services/nostr.dart';
+import 'package:beatcoin/services/rewards.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +16,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    NostrService nostrService = Get.find();
+    final nostrService = Get.find<NostrService>();
+    final rewardService = Get.find<RewardsService>();
 
     return SingleChildScrollView(
       child: Obx(
@@ -24,12 +26,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundImage: NetworkImage(
-                        nostrService.profile.value.pictureUrl,
-                      ),
-                    ),
+                    nostrService.profile.value.pictureUrl != ''
+                        ? CircleAvatar(
+                            radius: 48,
+                            backgroundImage: NetworkImage(
+                              nostrService.profile.value.pictureUrl,
+                            ),
+                          )
+                        : Container(),
                     Text(
                       nostrService.profile.value.name,
                     ),
@@ -39,6 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     FilledButton.icon(
                       onPressed: () {
                         nostrService.logout();
+                        rewardService.clearWorkoutHistory();
                       },
                       icon: const Icon(
                         Icons.logout,
