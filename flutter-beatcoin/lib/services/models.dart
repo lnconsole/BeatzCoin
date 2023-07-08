@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class WorkoutDetails {
   DateTime date;
   int satsEarned;
@@ -7,8 +9,7 @@ class WorkoutDetails {
   factory WorkoutDetails.fromJSON(Map<String, dynamic> json) {
     var satsEarned = json['sats_earned'];
     satsEarned ??= 0;
-    var date = DateTime.tryParse(json['date']);
-    date ??= DateTime.now();
+    var date = DateFormat('yyyy/MM/dd').parse(json['date']);
 
     return WorkoutDetails(date, satsEarned);
   }
@@ -41,5 +42,13 @@ class NostrProfile {
 
   factory NostrProfile.empty() {
     return NostrProfile("", "", "");
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'display_name': name,
+      'picture': pictureUrl,
+      'lud16': lud16,
+    };
   }
 }

@@ -17,7 +17,7 @@ class RewardsService extends GetxService {
 
   void setWorkoutHistory(List<WorkoutDetails> workout) {
     if (workout.isNotEmpty) {
-      workout.sort((a, b) => a.date.compareTo(b.date));
+      workout.sort((a, b) => b.date.compareTo(a.date));
       final now = DateTime.now().toUtc();
       final first = workout.first.date;
 

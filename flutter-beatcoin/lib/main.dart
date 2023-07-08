@@ -1,3 +1,4 @@
+import 'package:beatcoin/env.dart';
 import 'package:beatcoin/pages/devices.dart';
 import 'package:beatcoin/pages/home.dart';
 import 'package:beatcoin/pages/leaderboard.dart';
@@ -23,7 +24,7 @@ void main() async {
   ]);
 
   final prefs = await SharedPreferences.getInstance();
-  final nostrService = NostrService(prefs, 'ws://3.12.78.99:7447');
+  final nostrService = NostrService(prefs, Env.relayUrl);
   await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService(
@@ -59,18 +60,20 @@ class _MyAppState extends State<MyApp> {
       case 1:
         return WorkoutPage();
       case 2:
-        return LeaderboardPage();
-      case 3:
         return ProfilePage();
-      case 4:
+      case 3:
         return DevicesPage();
       default:
         return HomePage();
     }
   }
 
-  Widget _fab(int currentIndex, WorkoutService workoutService) {
-    if (currentIndex == 1) {
+  Widget _fab(
+    int currentIndex,
+    WorkoutService workoutService,
+    PolarService polarService,
+  ) {
+    if (currentIndex == 1 && polarService.isDeviceConnected.value) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
@@ -90,15 +93,16 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    PolarService polarController = Get.find();
+    PolarService polarService = Get.find();
     WorkoutService workoutService = Get.find();
 
     Widget iconButton(bool deviceConnected) {
       return FilledButton.icon(
         onPressed: () {
           setState(() {
-            _currentIndex = 4;
+            _currentIndex = 3;
           });
+          polarService.searchDevices();
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith(
@@ -130,9 +134,12 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         label: deviceConnected
-            ? Container(
-                height: 0,
-                width: 0,
+            ? Text(
+                polarService.heartRate.value.toString(),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
+                ),
               )
             : Text(
                 'connect',
@@ -277,7 +284,7 @@ class _MyAppState extends State<MyApp> {
           elevation: 0,
           title: Obx(
             () => iconButton(
-              polarController.isDeviceConnected.value,
+              polarService.isDeviceConnected.value,
             ),
           ),
         ),
@@ -313,19 +320,6 @@ class _MyAppState extends State<MyApp> {
 
             /// Search
             SalomonBottomBarItem(
-              icon: Icon(Icons.leaderboard),
-              title: Text(
-                "Leaderboard",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'Sora',
-                ),
-              ),
-              selectedColor: Colors.orange,
-            ),
-
-            /// Profile
-            SalomonBottomBarItem(
               icon: Icon(Icons.person),
               title: Text(
                 "Profile",
@@ -341,6 +335,7 @@ class _MyAppState extends State<MyApp> {
         floatingActionButton: _fab(
           _currentIndex,
           workoutService,
+          polarService,
         ),
         body: _selectedPage(),
       ),

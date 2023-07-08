@@ -56,7 +56,23 @@ class NostrService extends GetxService {
       content,
     );
     _ws.add(e.serialize());
-    print('sent kind 4');
+  }
+
+  void updateLud16(String lud16) async {
+    final e = Event.from(
+      kind: 0,
+      tags: [],
+      content: jsonEncode(
+        NostrProfile(
+          profile.value.name,
+          profile.value.pictureUrl,
+          lud16,
+        ).toJSON(),
+      ),
+      privkey: _keychain.private,
+    );
+
+    _ws.add(e.serialize());
   }
 
   Future _connectToRelay() async {
@@ -82,7 +98,7 @@ class NostrService extends GetxService {
           kinds: [NostrService.eventKindBeatzcoinHistory],
           since: 1686306208,
           limit: 450,
-        )
+        ),
       ],
     );
 
@@ -126,18 +142,25 @@ class NostrService extends GetxService {
 
   Future _handleEncryptedDM(Event event) async {
     final dm = EncryptedDirectMessage.receive(event);
-    print('received encrypted dm');
   }
 
   Future _handleBeatzcoinEvent(Event event) async {
     print('got 33333');
-    final eventContent = BeatzcoinEventContent.fromJSON(
-      jsonDecode(
-        event.content,
-      ),
-    );
-    final rewardService = Get.find<RewardsService>();
-    rewardService.setWorkoutHistory(eventContent.workout);
+
+    for (final tag in event.tags) {
+      if (tag.contains(_keychain.public)) {
+        final eventContent = BeatzcoinEventContent.fromJSON(
+          jsonDecode(
+            event.content,
+          ),
+        );
+
+        final rewardService = Get.find<RewardsService>();
+        rewardService.setWorkoutHistory(eventContent.workout);
+
+        return;
+      }
+    }
   }
 
   Future<bool> _setPrivateKey(String privateKey) async {
@@ -148,8 +171,11 @@ class NostrService extends GetxService {
 
     _keychain = Keychain(pk);
     pubKey.value = _keychain.public;
+
+    final success = await _prefs.setString(_pkKey, pk);
+
     loggedIn.value = true;
 
-    return await _prefs.setString(_pkKey, pk);
+    return success;
   }
 }

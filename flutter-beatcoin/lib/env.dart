@@ -7,6 +7,9 @@ abstract class Env {
   @EnviedField(varName: 'SERVER_SECRET', obfuscate: true)
   static final String serverSecret = _Env.serverSecret;
 
-  @EnviedField(varName: 'SERVER_PUBKEY')
-  static const String serverPubkey = _Env.serverPubkey;
+  @EnviedField(varName: 'SERVER_PUBKEY', obfuscate: true)
+  static final String serverPubkey = _Env.serverPubkey;
+
+  @EnviedField(varName: 'RELAY_URL', obfuscate: true)
+  static final String relayUrl = _Env.relayUrl;
 }

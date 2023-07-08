@@ -6,7 +6,7 @@ import 'package:beatcoin/env.dart';
 import 'package:get/get.dart';
 
 class WorkoutService extends GetxService {
-  final _heartRateThreshold = 160;
+  final heartRateThreshold = 160;
   final start = DateTime.now().obs;
   final end = DateTime.now().obs;
   final duration = '00:00:00'.obs;
@@ -30,7 +30,7 @@ class WorkoutService extends GetxService {
     });
 
     _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_polarService.heartRate.value >= _heartRateThreshold) {
+      if (_polarService.heartRate.value >= heartRateThreshold) {
         final message = WorkoutBpmEventContent(
           Env.serverSecret,
           _polarService.heartRate.value,
@@ -41,15 +41,15 @@ class WorkoutService extends GetxService {
         );
       }
 
-      // use this code for testing
-      // final message = WorkoutBpmEventContent(
-      //   Env.serverSecret,
-      //   180,
-      // );
-      // _nostrService.sendEncryptedDM(
-      //   Env.serverPubkey,
-      //   jsonEncode(message.toJSON()),
-      // );
+      // CODE FOR TESTING ONLY
+      final message = WorkoutBpmEventContent(
+        Env.serverSecret,
+        180,
+      );
+      _nostrService.sendEncryptedDM(
+        Env.serverPubkey,
+        jsonEncode(message.toJSON()),
+      );
     });
   }
 

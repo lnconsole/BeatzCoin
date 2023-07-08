@@ -8,6 +8,23 @@ import 'package:get/get.dart';
 class WorkoutPage extends StatelessWidget {
   const WorkoutPage({super.key});
 
+  Color? _chartColor(
+    int bpm,
+    WorkoutService workoutService,
+  ) {
+    if (bpm >= workoutService.heartRateThreshold) {
+      return const Color.fromARGB(255, 255, 238, 56);
+    }
+
+    final value = bpm / workoutService.heartRateThreshold;
+
+    return Color.lerp(
+      const Color.fromARGB(255, 146, 255, 87),
+      const Color.fromARGB(255, 255, 87, 87),
+      value,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final polarController = Get.find<PolarService>();
@@ -26,6 +43,10 @@ class WorkoutPage extends StatelessWidget {
               child: Card(
                 child: buildDistanceTrackerExample(
                   polarController.heartRate.value,
+                  _chartColor(
+                    polarController.heartRate.value,
+                    workoutService,
+                  ),
                 ),
               ),
             ),
@@ -42,16 +63,16 @@ class WorkoutPage extends StatelessWidget {
                     horizontal: 8.0,
                   ),
                   child: ListTile(
-                    leading: Icon(
+                    leading: const Icon(
                       Icons.bolt_outlined,
                     ),
                     title: Text(
                       rewardService.satsEarnedFormatted.value,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                       ),
                     ),
-                    subtitle: Text('sats earned'),
+                    subtitle: const Text('sats earned today'),
                   ),
                 ),
               ),
@@ -69,16 +90,16 @@ class WorkoutPage extends StatelessWidget {
                     horizontal: 8.0,
                   ),
                   child: ListTile(
-                    leading: Icon(
+                    leading: const Icon(
                       Icons.timer_outlined,
                     ),
                     title: Text(
                       workoutService.duration.string,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                       ),
                     ),
-                    subtitle: Text('workout duration'),
+                    subtitle: const Text('workout duration'),
                   ),
                 ),
               ),
