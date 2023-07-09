@@ -92,8 +92,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    PolarService polarService = Get.find();
-    WorkoutService workoutService = Get.find();
+    final polarService = Get.find<PolarService>();
+    final workoutService = Get.find<WorkoutService>();
+    final nostrService = Get.find<NostrService>();
 
     Widget iconButton(bool deviceConnected) {
       return FilledButton.icon(
@@ -147,6 +148,45 @@ class _MyAppState extends State<MyApp> {
                   color: deviceConnected ? Colors.green[400] : Colors.red[400],
                 ),
               ),
+      );
+    }
+
+    Widget relayButton(NostrService nostrService) {
+      if (!nostrService.connected.value) {
+        return Container();
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+        ),
+        child: FilledButton.icon(
+          onPressed: () {},
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(
+              Colors.blue[50],
+            ),
+            overlayColor: MaterialStateProperty.all(
+              Colors.blue[100],
+            ),
+          ),
+          icon: SvgPicture.asset(
+            'assets/icons/network-3.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              Colors.blue[400]!,
+              BlendMode.srcIn,
+            ),
+          ),
+          label: Text(
+            'nostr',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.blue[400],
+            ),
+          ),
+        ),
       );
     }
 
@@ -282,6 +322,11 @@ class _MyAppState extends State<MyApp> {
               polarService.isDeviceConnected.value,
             ),
           ),
+          actions: [
+            Obx(
+              () => relayButton(nostrService),
+            ),
+          ],
         ),
         bottomNavigationBar: SalomonBottomBar(
           currentIndex: _currentIndex,

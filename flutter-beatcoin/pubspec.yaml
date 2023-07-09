@@ -45,6 +45,7 @@ dependencies:
   flex_color_scheme: ^7.1.2
   envied: ^0.3.0+3
   intl: ^0.18.1
+  animate_gradient: ^0.0.2+1
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,7 @@ flutter:
   assets:
     - assets/icons/plug-disconnected-24-regular.svg
     - assets/icons/heart-rate.svg
+    - assets/icons/network-3.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

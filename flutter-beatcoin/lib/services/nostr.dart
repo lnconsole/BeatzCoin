@@ -20,6 +20,7 @@ class NostrService extends GetxService {
   final loggedIn = false.obs;
   final pubKey = ''.obs;
   final profile = NostrProfile.empty().obs;
+  final connected = false.obs;
 
   NostrService(SharedPreferences prefs, String relayUrl) {
     _prefs = prefs;
@@ -60,6 +61,7 @@ class NostrService extends GetxService {
 
   void dispose() {
     _ws.close();
+    connected.value = false;
   }
 
   Future<bool> setPrivateKey(String privateKey) async {
@@ -94,6 +96,7 @@ class NostrService extends GetxService {
     pubKey.value = '';
     loggedIn.value = false;
     _ws.close();
+    connected.value = false;
 
     return await _prefs.remove(_pkKey);
   }
@@ -128,6 +131,8 @@ class NostrService extends GetxService {
     _ws = await WebSocket.connect(
       _relayUrl,
     );
+
+    connected.value = true;
 
     _ws.listen((event) {
       final e = Message.deserialize(event);
