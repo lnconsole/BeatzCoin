@@ -21,6 +21,7 @@ class NostrService extends GetxService {
   final pubKey = ''.obs;
   final profile = NostrProfile.empty().obs;
   final connected = false.obs;
+  bool get isProfileReady => loggedIn.value && profile.value.lud16 != '';
 
   NostrService(SharedPreferences prefs, String relayUrl) {
     _prefs = prefs;

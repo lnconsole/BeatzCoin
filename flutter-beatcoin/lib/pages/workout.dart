@@ -55,6 +55,126 @@ class _WorkoutPageState extends State<WorkoutPage>
     );
   }
 
+  Widget _workoutColumnWidgets() {
+    return GetX<WorkoutService>(
+      builder: (controller) {
+        if (workoutService.readyToWorkout) {
+          return Column(
+            children: [
+              Obx(
+                () => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                  ),
+                  child: Card(
+                    child: buildGaugeChart(
+                      polarController.heartRate.value,
+                      _chartColor(
+                        polarController.heartRate.value,
+                        workoutService,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Obx(
+                () => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                  ),
+                  child: Card(
+                    child: AnimateGradient(
+                      controller: _animationController,
+                      primaryColors: const [
+                        Colors.transparent,
+                        Colors.transparent,
+                        Colors.transparent,
+                      ],
+                      secondaryColors: [
+                        Colors.yellow,
+                        Colors.yellow[300]!,
+                        Colors.yellow[700]!,
+                      ],
+                      primaryBegin: Alignment.bottomLeft,
+                      primaryEnd: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                        ),
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.bolt_outlined,
+                            color: Color.fromARGB(255, 255, 234, 0),
+                            size: 40,
+                          ),
+                          title: Text(
+                            rewardService.satsEarnedFormatted.value,
+                            style: const TextStyle(
+                              fontSize: 24,
+                            ),
+                          ),
+                          subtitle: const Text('sats earned today'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Obx(
+                () => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                  ),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.timer_outlined,
+                          size: 40,
+                        ),
+                        title: Text(
+                          workoutService.duration.string,
+                          style: const TextStyle(
+                            fontSize: 24,
+                          ),
+                        ),
+                        subtitle: const Text('workout duration'),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                  'You need to setup some things before picking up some Sats!'),
+              Text(
+                  '1. Go to the Profile page and login with your Nostr Profile.'),
+              Text(
+                '2. Make sure your Nostr Profile has a Lightning Address setup. You can do this in the profile page as well.',
+              ),
+              Text(
+                '3. Connect you polar device.',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -72,94 +192,7 @@ class _WorkoutPageState extends State<WorkoutPage>
               ),
             ),
           ),
-          Obx(
-            () => Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-              ),
-              child: Card(
-                child: buildDistanceTrackerExample(
-                  polarController.heartRate.value,
-                  _chartColor(
-                    polarController.heartRate.value,
-                    workoutService,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Obx(
-            () => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-              ),
-              child: Card(
-                child: AnimateGradient(
-                  controller: _animationController,
-                  primaryColors: const [
-                    Colors.transparent,
-                    Colors.transparent,
-                    Colors.transparent,
-                  ],
-                  secondaryColors: [
-                    Colors.yellow,
-                    Colors.yellow[300]!,
-                    Colors.yellow[700]!,
-                  ],
-                  primaryBegin: Alignment.bottomLeft,
-                  primaryEnd: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                    ),
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.bolt_outlined,
-                        color: Color.fromARGB(255, 255, 234, 0),
-                        size: 40,
-                      ),
-                      title: Text(
-                        rewardService.satsEarnedFormatted.value,
-                        style: const TextStyle(
-                          fontSize: 24,
-                        ),
-                      ),
-                      subtitle: const Text('sats earned today'),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Obx(
-            () => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-              ),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                  ),
-                  child: ListTile(
-                    leading: const Icon(
-                      Icons.timer_outlined,
-                      size: 40,
-                    ),
-                    title: Text(
-                      workoutService.duration.string,
-                      style: const TextStyle(
-                        fontSize: 24,
-                      ),
-                    ),
-                    subtitle: const Text('workout duration'),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _workoutColumnWidgets(),
         ],
       ),
     );

@@ -16,6 +16,9 @@ class WorkoutService extends GetxService {
   final NostrService _nostrService;
   final PolarService _polarService;
 
+  bool get readyToWorkout =>
+      _polarService.isDeviceConnected.value && _nostrService.isProfileReady;
+
   WorkoutService(
     this._nostrService,
     this._polarService,

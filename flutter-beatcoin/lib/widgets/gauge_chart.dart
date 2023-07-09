@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-SfRadialGauge buildDistanceTrackerExample(int markerValue, Color? color) {
+SfRadialGauge buildGaugeChart(int markerValue, Color? color) {
   return SfRadialGauge(
     axes: <RadialAxis>[
       RadialAxis(

@@ -1,5 +1,6 @@
 import 'package:get/state_manager.dart';
 import 'package:polar/polar.dart';
+import 'package:bluetooth_enable_fork/bluetooth_enable_fork.dart';
 
 class PolarService extends GetxService {
   final polar = Polar();
@@ -23,10 +24,16 @@ class PolarService extends GetxService {
   }
 
   void searchDevices() async {
-    polar.requestPermissions();
-    polar.searchForDevice().listen((e) {
-      devices.add(e);
-    });
+    final enableBluetooth = await BluetoothEnable.enableBluetooth;
+    if (enableBluetooth == "true") {
+      print('ble enabled');
+      polar.requestPermissions();
+      polar.searchForDevice().listen((e) {
+        devices.add(e);
+      });
+    } else {
+      print('ble not enabled');
+    }
   }
 
   void connect(String deviceId) async {
