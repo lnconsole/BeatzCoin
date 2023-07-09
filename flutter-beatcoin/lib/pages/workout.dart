@@ -153,20 +153,36 @@ class _WorkoutPageState extends State<WorkoutPage>
           );
         }
 
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
+        return const Padding(
+          padding: EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                   'You need to setup some things before picking up some Sats!'),
-              Text(
-                  '1. Go to the Profile page and login with your Nostr Profile.'),
-              Text(
-                '2. Make sure your Nostr Profile has a Lightning Address setup. You can do this in the profile page as well.',
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text(
+                    'Go to the Profile page and login with your Nostr Profile.',
+                  ),
+                ),
               ),
-              Text(
-                '3. Connect you polar device.',
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.alternate_email),
+                  title: Text(
+                    'Make sure your Nostr Profile has a Lightning Address setup. You can do this in the profile page as well.',
+                  ),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.heart_broken_outlined),
+                  title: Text(
+                    'Connect you polar device using the connect button above.',
+                  ),
+                ),
               ),
             ],
           ),

@@ -3,9 +3,9 @@ import 'package:beatcoin/env.dart';
 import 'package:beatcoin/services/models.dart';
 import 'package:beatcoin/services/rewards.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nostr/nostr.dart';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class NostrService extends GetxService {
   String _relayUrl = '';
@@ -13,7 +13,7 @@ class NostrService extends GetxService {
   static const eventKindMetadata = 0;
   static const eventKindEncryptedDM = 4;
   static const eventKindBeatzcoinHistory = 33333;
-  late SharedPreferences _prefs;
+  late FlutterSecureStorage _storage;
   late WebSocket _ws;
   late Keychain _keychain;
 
@@ -23,13 +23,13 @@ class NostrService extends GetxService {
   final connected = false.obs;
   bool get isProfileReady => loggedIn.value && profile.value.lud16 != '';
 
-  NostrService(SharedPreferences prefs, String relayUrl) {
-    _prefs = prefs;
+  NostrService(FlutterSecureStorage storage, String relayUrl) {
+    _storage = storage;
     _relayUrl = relayUrl;
   }
 
   Future init() async {
-    final pk = _prefs.getString(_pkKey);
+    final pk = await _storage.read(key: _pkKey);
     if (pk != null && pk != '') {
       await _setPrivateKey(pk);
 
@@ -65,9 +65,9 @@ class NostrService extends GetxService {
     connected.value = false;
   }
 
-  Future<bool> setPrivateKey(String privateKey) async {
+  Future setPrivateKey(String privateKey) async {
     await _connectToRelay();
-    final success = await _setPrivateKey(privateKey);
+    await _setPrivateKey(privateKey);
 
     Request requestWithFilter = Request(
       generate64RandomHexChars(),
@@ -89,17 +89,15 @@ class NostrService extends GetxService {
       ],
     );
     _ws.add(requestWithFilter.serialize());
-
-    return success;
   }
 
-  Future<bool> logout() async {
+  Future logout() async {
     pubKey.value = '';
     loggedIn.value = false;
     _ws.close();
     connected.value = false;
 
-    return await _prefs.remove(_pkKey);
+    await _storage.delete(key: _pkKey);
   }
 
   void sendEncryptedDM(String receiverPubkey, String content) async {
@@ -192,7 +190,7 @@ class NostrService extends GetxService {
     }
   }
 
-  Future<bool> _setPrivateKey(String privateKey) async {
+  Future _setPrivateKey(String privateKey) async {
     String pk = privateKey;
     if (privateKey.startsWith('nsec1')) {
       pk = Nip19.decodePrivkey(privateKey);
@@ -201,11 +199,9 @@ class NostrService extends GetxService {
     _keychain = Keychain(pk);
     pubKey.value = _keychain.public;
 
-    final success = await _prefs.setString(_pkKey, pk);
+    await _storage.write(key: _pkKey, value: pk);
 
     profile.value = NostrProfile.empty();
     loggedIn.value = true;
-
-    return success;
   }
 }

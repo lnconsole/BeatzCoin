@@ -41,12 +41,12 @@ dependencies:
   flutter_svg: ^2.0.6
   syncfusion_flutter_gauges: ^21.2.9
   nostr: ^1.4.0
-  shared_preferences: ^2.1.2
   flex_color_scheme: ^7.1.2
   envied: ^0.3.0+3
   intl: ^0.18.1
   animate_gradient: ^0.0.2+1
   bluetooth_enable_fork: ^0.1.6
+  flutter_secure_storage: ^8.0.0
 
 dev_dependencies:
   flutter_test:

@@ -12,8 +12,8 @@ import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,8 +22,8 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  final prefs = await SharedPreferences.getInstance();
-  final nostrService = NostrService(prefs, Env.relayUrl);
+  const storage = FlutterSecureStorage();
+  final nostrService = NostrService(storage, Env.relayUrl);
   await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService(
@@ -72,7 +72,7 @@ class _MyAppState extends State<MyApp> {
     WorkoutService workoutService,
     PolarService polarService,
   ) {
-    if (currentIndex == 1 /*&& polarService.isDeviceConnected.value*/) {
+    if (currentIndex == 1 && workoutService.readyToWorkout) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
