@@ -180,7 +180,7 @@ class _WorkoutPageState extends State<WorkoutPage>
                 child: ListTile(
                   leading: Icon(Icons.heart_broken_outlined),
                   title: Text(
-                    'Connect you polar device using the connect button above.',
+                    'Connect your polar device using the connect button above.',
                   ),
                 ),
               ),
