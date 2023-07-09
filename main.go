@@ -8,29 +8,27 @@ import (
 	"os"
 	"time"
 
-	sm "github.com/SaveTheRbtz/generic-sync-map-go"
 	"github.com/fiatjaf/go-lnurl"
+	bstr "github.com/lnconsole/BeatCoin/service/nostr"
 	pmnt "github.com/lnconsole/BeatCoin/service/payment"
 	"github.com/lnconsole/BeatCoin/service/payment/lightning"
 	"github.com/lnconsole/BeatCoin/service/payment/lightning/client/ibexhub"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/subosito/gotenv"
 )
-
-/*
-generate & store public key
-listen for kind4
-if secret is valid, check map[pubkey]map[day]sats > threshold
-if not, grab lightning address from profile. check if lightning address is valid
-if yes, add entry to map
-send to lightning address
-send parameterized replaceable event
-*/
 
 type BeatzcoinPayload struct {
 	Secret string `json:"beatzcoin_secret"`
 	BPM    int    `json:"bpm"`
+}
+
+type Workout struct {
+	Date       string `json:"date"`
+	SatsEarned int    `json:"sats_earned"`
+}
+
+type WorkoutsPayload struct {
+	History []Workout `json:"workout"`
 }
 
 type Profile struct {
@@ -42,23 +40,31 @@ type Profile struct {
 	DisplayName string  `json:"display_name"`
 	About       string  `json:"about"`
 	Name        string  `json:"name"`
+	Pubkey      string  `json:"pubkey"`
 }
 
 const (
-	thresholdRate = 180
-	rewardMsat    = 1000
-	relayUrl      = "wss://nostr-pub.wellorder.net"
+	thresholdRate  = 160
+	rewardMsat     = 1000
+	dailySatsQuota = rewardMsat / 1000 * 300
+	// dailySatsQuota = rewardMsat / 1000 * 30
+	dateFormat = "2006/01/02"
 )
 
-var bcRelay *nostr.Relay
+var (
+	bcRelay *nostr.Relay
+	// map[pubkey]map[date]sats
+	history = map[string]*map[string]*int{}
+)
 
 func main() {
 	fmt.Println("Drop the beats, Pick up the sats")
-
+	// load env
 	if err := gotenv.Load(); err != nil {
 		log.Printf("gotenv: %s", err)
 		return
 	}
+	relayUrl := os.Getenv("RELAY_URL")
 	// init ln payment service
 	if err := pmnt.InitIBEXHub(ibexhub.Credentials{
 		Email:     os.Getenv("IBEXHUB_USER_EMAIL"),
@@ -77,38 +83,84 @@ func main() {
 		return
 	}
 	// connect to relay
-	relay, err := nostr.RelayConnect(context.Background(), relayUrl)
+	bcRelay, err = nostr.RelayConnect(context.Background(), relayUrl)
 	if err != nil {
 		log.Printf("failed to connect to %s: %s", relayUrl, err)
 		return
 	}
-	bcRelay = relay
+
 	log.Printf("connected to: %s", bcRelay)
 	go func() {
-		for notice := range relay.Notices {
-			log.Printf("(%s) notice: %s", relay.URL, notice)
+		for notice := range bcRelay.Notices {
+			log.Printf("(%s) notice: %s", bcRelay.URL, notice)
 		}
 	}()
+	// listen for kind 33333 for a few seconds to init data store
+	var (
+		t          = time.Now()
+		subHistory = bcRelay.Subscribe(context.Background(), nostr.Filters{{
+			Kinds:   []int{33333},
+			Authors: []string{pk},
+		}})
+		historyCh = bstr.Unique(subHistory.Events)
+		events    = []nostr.Event{}
+	)
+
+LOOP:
+	for {
+		select {
+		case evt := <-historyCh:
+			events = append(events, evt)
+		case <-time.After(5 * time.Second):
+			break LOOP
+		}
+	}
+	subHistory.Unsub()
+
+	// handle kind 33333
+	for _, evt := range events {
+		dTag := evt.Tags.GetFirst([]string{"d"})
+		if dTag == nil {
+			continue
+		}
+
+		workout := WorkoutsPayload{}
+		err := json.Unmarshal([]byte(evt.Content), &workout)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		// initialize each beatzcoin client
+		if _, ok := history[dTag.Value()]; !ok {
+			history[dTag.Value()] = &map[string]*int{}
+		}
+		// build history
+		for _, session := range workout.History {
+			(*history[dTag.Value()])[session.Date] = &session.SatsEarned
+		}
+	}
+	for key, value := range history {
+		for key2, value2 := range *value {
+			log.Printf("history: %s, %s, %d", key, key2, *value2)
+		}
+	}
 	// listen for kind 4
 	var (
-		t   = time.Now()
-		sub = relay.Subscribe(context.Background(), nostr.Filters{{
+		subDM = bcRelay.Subscribe(context.Background(), nostr.Filters{{
 			Kinds: []int{nostr.KindEncryptedDirectMessage},
 			Since: &t,
 			Tags:  nostr.TagMap{"p": []string{pk}},
 		}})
 		profilech = make(chan Profile)
-	)
-	// handle events
-	var (
-		payload BeatzcoinPayload
+		payload   BeatzcoinPayload
 	)
 	// handle kind 4
 	go func(sub *nostr.Subscription) {
-		uniqueCh := unique(sub.Events)
+		uniqueCh := bstr.Unique(sub.Events)
 		for evt := range uniqueCh {
+			log.Printf("got kind 4 by %s", evt.PubKey)
 			// decrypt content
-			decrypted, err := decrypt(evt.PubKey, sk, evt.Content)
+			decrypted, err := bstr.Decrypt(evt.PubKey, sk, evt.Content)
 			if err != nil {
 				log.Printf("Failed to decrypt: %s", err)
 				continue
@@ -118,6 +170,18 @@ func main() {
 				log.Print(err)
 				continue
 			}
+			// validate daily quota
+			now := time.Now()
+			// get sats disbursed for today
+			todayStr := now.Format(dateFormat)
+			if sessions, exists := history[evt.PubKey]; exists {
+				if satsEarned, sessionExists := (*sessions)[todayStr]; sessionExists {
+					if *satsEarned >= dailySatsQuota {
+						log.Printf("quota met for: %s", evt.PubKey)
+						continue
+					}
+				}
+			}
 			// validate secret
 			if os.Getenv("BEATZCOIN_SECRET") != payload.Secret {
 				log.Printf("invalid secret: %s", payload.Secret)
@@ -125,16 +189,20 @@ func main() {
 			}
 			// validate bpm
 			if payload.BPM < thresholdRate {
-				log.Printf("did not meet BPM threshold(180): %d", payload.BPM)
+				log.Printf("did not meet BPM threshold(%d): %d", thresholdRate, payload.BPM)
 				continue
 			}
 			// fetch profile
 			fetchMetadataAsync(evt.PubKey, profilech)
 		}
-	}(sub)
+	}(subDM)
 	// handle profile
 	go func() {
 		for p := range profilech {
+			log.Printf("handling profile of %s", p.Pubkey)
+
+			today := time.Now()
+
 			if p.Lud16 == nil {
 				log.Printf("client has no lud16: %s", p.Name)
 				continue
@@ -156,14 +224,56 @@ func main() {
 				log.Printf("Failed to get Lightning Address values: %v", payParams)
 				continue
 			}
+			// send workout payload
+			_, exists := history[p.Pubkey]
+			if !exists {
+				history[p.Pubkey] = &map[string]*int{}
+			}
+			// update current date
+			var (
+				sessions                  = history[p.Pubkey]
+				todayStr                  = today.Format(dateFormat)
+				satsEarned, sessionExists = (*sessions)[todayStr]
+				rewardSat                 = rewardMsat / 1000
+			)
+			if sessionExists {
+				*satsEarned += rewardSat
+			} else {
+				(*sessions)[todayStr] = &rewardSat
+			}
+			payload := WorkoutsPayload{}
+			for date, satsEarned := range *sessions {
+				// construct payload to be published
+				payload.History = append(payload.History, Workout{
+					Date:       date,
+					SatsEarned: *satsEarned,
+				})
+			}
+			// publish event
+			bytes, err := json.Marshal(payload)
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+			if _, err := bstr.Publish(context.Background(), nostr.Event{
+				CreatedAt: time.Now(),
+				Kind:      33333,
+				Tags: nostr.Tags{
+					nostr.Tag{"d", p.Pubkey},
+				},
+				Content: string(bytes),
+			}, sk, relayUrl); err != nil {
+				log.Printf("Failed to publish: %s", err)
+				continue
+			}
 
+			// make payment
 			if _, err := pmnt.MakePayment(lightning.PaymentParams{
 				Bolt11: values.PR,
 			}); err != nil {
 				log.Printf("Failed to pay Lightning Address: %s", err)
-				return
+				continue
 			}
-
 			log.Printf("sending %d sats to %s", rewardMsat/1000, *p.Lud16)
 		}
 	}()
@@ -172,20 +282,22 @@ func main() {
 }
 
 func fetchMetadataAsync(pubkey string, ch chan Profile) {
+	log.Printf("fetchMetadataAsync for %s", pubkey)
 	go func() {
 		var (
-			sub = bcRelay.Subscribe(context.Background(), nostr.Filters{{
+			subMetadata = bcRelay.Subscribe(context.Background(), nostr.Filters{{
 				Kinds:   []int{nostr.KindSetMetadata},
 				Authors: []string{pubkey},
 			}})
-			events  []nostr.Event
-			counter int
+			metadatach = bstr.Unique(subMetadata.Events)
+			events     []nostr.Event
+			counter    int
 		)
 	LOOP:
 		for {
 			select {
-			case evt := <-sub.Events:
-				events = append(events, *evt)
+			case evt := <-metadatach:
+				events = append(events, evt)
 			case <-time.After(1 * time.Second):
 				if len(events) == 0 && counter == 0 {
 					// no events and this is the first second. Wait for another second
@@ -208,7 +320,7 @@ func fetchMetadataAsync(pubkey string, ch chan Profile) {
 		}
 
 		// parse profile metadata
-		profile := Profile{}
+		profile := Profile{Pubkey: pubkey}
 		if latest == nil {
 			log.Print("did not get any profile")
 			return
@@ -222,45 +334,4 @@ func fetchMetadataAsync(pubkey string, ch chan Profile) {
 
 		ch <- profile
 	}()
-}
-
-func decrypt(destPubkey string, sk string, encrypted string) (*string, error) {
-	sec, err := nip04.ComputeSharedSecret(destPubkey, sk)
-	if err != nil {
-		return nil, err
-	}
-
-	decrypted, err := nip04.Decrypt(encrypted, sec)
-	if err != nil {
-		return nil, err
-	}
-
-	return &decrypted, nil
-}
-
-func unique(all chan *nostr.Event) chan nostr.Event {
-	uniqueEvents := make(chan nostr.Event)
-	emittedAlready := sm.MapOf[string, struct{}]{}
-
-	go func() {
-		for event := range all {
-			if _, ok := emittedAlready.LoadOrStore(event.ID, struct{}{}); !ok {
-				uniqueEvents <- *event
-			}
-		}
-	}()
-
-	go func() {
-		for {
-			count := 0
-			emittedAlready.Range(func(key string, value struct{}) bool {
-				count += 1
-				return true
-			})
-			log.Printf("size of emittedAlready: %d", count)
-			time.Sleep(5 * time.Minute)
-		}
-	}()
-
-	return uniqueEvents
 }

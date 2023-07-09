@@ -3,13 +3,8 @@ package shared
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 func DecodeBody(body io.ReadCloser, destination interface{}) error {
@@ -79,20 +74,4 @@ func Delete(url string, headers *map[string]string) (*http.Response, error) {
 	}
 
 	return http.DefaultClient.Do(request)
-}
-
-func FormatUrl(host string) string {
-	if strings.Contains(host, "localhost") {
-		return fmt.Sprintf("http://%s", host)
-	} else {
-		return fmt.Sprintf("https://%s", host)
-	}
-}
-
-func BadLnurlRequest(c *gin.Context, err error) {
-	log.Println(err.Error())
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{
-		"status": "ERROR",
-		"reason": err.Error(),
-	})
 }

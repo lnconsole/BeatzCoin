@@ -26,10 +26,6 @@ func CreateInvoice(params ln.InvoiceParams) (*ln.InvoiceData, error) {
 
 	istatus := make(chan ln.InvoiceStatus)
 
-	// if !shared.IsProd() {
-	// 	params.AmountMsat = 1000
-	// }
-
 	iData, err := provider.CreateInvoice(params, istatus)
 	if err != nil {
 		return nil, err
