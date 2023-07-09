@@ -1,4 +1,5 @@
 import 'package:beatcoin/services/nostr.dart';
+import 'package:beatcoin/services/rewards.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,10 +12,12 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   String _pk = '';
+  String _newLnAddress = '';
 
   @override
   Widget build(BuildContext context) {
-    NostrService nostrService = Get.find();
+    final nostrService = Get.find<NostrService>();
+    final rewardService = Get.find<RewardsService>();
 
     return SingleChildScrollView(
       child: Obx(
@@ -23,41 +26,62 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
+                    nostrService.profile.value.pictureUrl != ''
+                        ? CircleAvatar(
+                            radius: 48,
+                            backgroundImage: NetworkImage(
+                              nostrService.profile.value.pictureUrl,
+                            ),
+                          )
+                        : Container(),
+                    Text(
+                      nostrService.profile.value.name,
+                    ),
+                    Text(
+                      nostrService.profile.value.lud16,
+                    ),
+                    FilledButton.icon(
+                      onPressed: () {
+                        nostrService.logout();
+                        rewardService.clearWorkoutHistory();
+                      },
+                      icon: const Icon(
+                        Icons.logout,
+                      ),
+                      label: const Text(
+                        'logout',
+                      ),
+                    ),
                     Card(
-                      child: ListTile(
-                        isThreeLine: true,
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            nostrService.profile.value.pictureUrl,
+                      child: Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text('Update your Lightning Address'),
                           ),
-                        ),
-                        title: Text(
-                          nostrService.profile.value.name,
-                        ),
-                        subtitle: Text(
-                          nostrService.profile.value.lud16,
-                        ),
-                        trailing: FilledButton.icon(
-                          onPressed: () {},
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                              Colors.blue[100],
-                            ),
-                            overlayColor: MaterialStateProperty.all(
-                              Colors.blue[200],
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  _newLnAddress = value;
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'bob@xxx.io',
+                              ),
+                              keyboardType: TextInputType.emailAddress,
                             ),
                           ),
-                          icon: const Icon(
-                            Icons.logout,
-                            color: Colors.blue,
+                          FilledButton(
+                            onPressed: () {
+                              nostrService.updateLud16(_newLnAddress);
+                              _newLnAddress = '';
+                            },
+                            child: const Text('update'),
                           ),
-                          label: const Text(
-                            'logout',
-                            style: TextStyle(
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -83,20 +107,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     onPressed: () {
                       nostrService.setPrivateKey(_pk);
                     },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        Colors.blue[100],
-                      ),
-                    ),
                     icon: const Icon(
                       Icons.login,
-                      color: Colors.blue,
                     ),
                     label: const Text(
                       'login',
-                      style: TextStyle(
-                        color: Colors.blue,
-                      ),
                     ),
                   ),
                 ],

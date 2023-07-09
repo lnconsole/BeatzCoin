@@ -13,31 +13,6 @@ class DevicesPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Center(
-            child: FilledButton.icon(
-              onPressed: () {
-                polarController.searchDevices();
-              },
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                  Colors.blue[100],
-                ),
-                overlayColor: MaterialStateProperty.all(
-                  Colors.blue[200],
-                ),
-              ),
-              icon: const Icon(
-                Icons.search,
-                color: Colors.blue,
-              ),
-              label: const Text(
-                'Scan for Devices',
-                style: TextStyle(
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-          ),
           Obx(
             () => Column(
               mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,6 @@
+import 'package:beatcoin/env.dart';
 import 'package:beatcoin/pages/devices.dart';
 import 'package:beatcoin/pages/home.dart';
-import 'package:beatcoin/pages/leaderboard.dart';
 import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
 import 'package:beatcoin/services/nostr.dart';
@@ -12,8 +12,8 @@ import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,8 +22,8 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  final prefs = await SharedPreferences.getInstance();
-  final nostrService = NostrService(prefs, 'wss://nostr-pub.wellorder.net');
+  const storage = FlutterSecureStorage();
+  final nostrService = NostrService(storage, Env.relayUrl);
   await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService(
@@ -57,20 +57,22 @@ class _MyAppState extends State<MyApp> {
   Widget _selectedPage() {
     switch (_currentIndex) {
       case 1:
-        return WorkoutPage();
+        return const WorkoutPage();
       case 2:
-        return LeaderboardPage();
+        return const ProfilePage();
       case 3:
-        return ProfilePage();
-      case 4:
-        return DevicesPage();
+        return const DevicesPage();
       default:
-        return HomePage();
+        return const HomePage();
     }
   }
 
-  Widget _fab(int currentIndex, WorkoutService workoutService) {
-    if (currentIndex == 1) {
+  Widget _fab(
+    int currentIndex,
+    WorkoutService workoutService,
+    PolarService polarService,
+  ) {
+    if (currentIndex == 1 && workoutService.readyToWorkout) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
@@ -90,15 +92,17 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    PolarService polarController = Get.find();
-    WorkoutService workoutService = Get.find();
+    final polarService = Get.find<PolarService>();
+    final workoutService = Get.find<WorkoutService>();
+    final nostrService = Get.find<NostrService>();
 
     Widget iconButton(bool deviceConnected) {
       return FilledButton.icon(
         onPressed: () {
           setState(() {
-            _currentIndex = 4;
+            _currentIndex = 3;
           });
+          polarService.searchDevices();
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith(
@@ -130,9 +134,12 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         label: deviceConnected
-            ? Container(
-                height: 0,
-                width: 0,
+            ? Text(
+                polarService.heartRate.value.toString(),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
+                ),
               )
             : Text(
                 'connect',
@@ -144,11 +151,46 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
+    Widget relayButton(NostrService nostrService) {
+      if (!nostrService.connected.value) {
+        return Container();
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+        ),
+        child: FilledButton.icon(
+          onPressed: () {},
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(
+              Colors.blue[50],
+            ),
+            overlayColor: MaterialStateProperty.all(
+              Colors.blue[100],
+            ),
+          ),
+          icon: SvgPicture.asset(
+            'assets/icons/network-3.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              Colors.blue[400]!,
+              BlendMode.srcIn,
+            ),
+          ),
+          label: Text(
+            'nostr',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.blue[400],
+            ),
+          ),
+        ),
+      );
+    }
+
     return MaterialApp(
-      // Theme config for FlexColorScheme version 7.1.x. Make sure you use
-// same or higher package version, but still same major version. If you
-// use a lower package version, some properties may not be supported.
-// In that case remove them after copying this theme to your app.
       theme: FlexThemeData.light(
         fontFamily: 'Sora',
         scheme: FlexScheme.orangeM3,
@@ -277,9 +319,14 @@ class _MyAppState extends State<MyApp> {
           elevation: 0,
           title: Obx(
             () => iconButton(
-              polarController.isDeviceConnected.value,
+              polarService.isDeviceConnected.value,
             ),
           ),
+          actions: [
+            Obx(
+              () => relayButton(nostrService),
+            ),
+          ],
         ),
         bottomNavigationBar: SalomonBottomBar(
           currentIndex: _currentIndex,
@@ -287,8 +334,8 @@ class _MyAppState extends State<MyApp> {
           items: [
             /// Home
             SalomonBottomBarItem(
-              icon: Icon(Icons.home),
-              title: Text(
+              icon: const Icon(Icons.home),
+              title: const Text(
                 "Home",
                 style: TextStyle(
                   fontSize: 12,
@@ -300,8 +347,8 @@ class _MyAppState extends State<MyApp> {
 
             /// Likes
             SalomonBottomBarItem(
-              icon: Icon(Icons.play_arrow),
-              title: Text(
+              icon: const Icon(Icons.play_arrow),
+              title: const Text(
                 "Workout",
                 style: TextStyle(
                   fontSize: 12,
@@ -313,21 +360,8 @@ class _MyAppState extends State<MyApp> {
 
             /// Search
             SalomonBottomBarItem(
-              icon: Icon(Icons.leaderboard),
-              title: Text(
-                "Leaderboard",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'Sora',
-                ),
-              ),
-              selectedColor: Colors.orange,
-            ),
-
-            /// Profile
-            SalomonBottomBarItem(
-              icon: Icon(Icons.person),
-              title: Text(
+              icon: const Icon(Icons.person),
+              title: const Text(
                 "Profile",
                 style: TextStyle(
                   fontSize: 12,
@@ -341,6 +375,7 @@ class _MyAppState extends State<MyApp> {
         floatingActionButton: _fab(
           _currentIndex,
           workoutService,
+          polarService,
         ),
         body: _selectedPage(),
       ),

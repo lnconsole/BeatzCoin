@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:beatcoin/services/polar.dart';
-import 'package:wakelock/wakelock.dart';
 import 'package:beatcoin/services/nostr.dart';
 import 'package:beatcoin/env.dart';
 import 'package:get/get.dart';
 
 class WorkoutService extends GetxService {
-  final _heartRateThreshold = 160;
+  final heartRateThreshold = 160;
   final start = DateTime.now().obs;
   final end = DateTime.now().obs;
   final duration = '00:00:00'.obs;
@@ -17,13 +16,15 @@ class WorkoutService extends GetxService {
   final NostrService _nostrService;
   final PolarService _polarService;
 
+  bool get readyToWorkout =>
+      _polarService.isDeviceConnected.value && _nostrService.isProfileReady;
+
   WorkoutService(
     this._nostrService,
     this._polarService,
   );
 
   void startWorkout() {
-    Wakelock.enable();
     running.value = true;
     start.value = DateTime.now();
 
@@ -31,8 +32,8 @@ class WorkoutService extends GetxService {
       _formatWorkoutTime();
     });
 
-    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (_polarService.heartRate.value >= _heartRateThreshold) {
+    _workoutRewardsTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (_polarService.heartRate.value >= heartRateThreshold) {
         final message = WorkoutBpmEventContent(
           Env.serverSecret,
           _polarService.heartRate.value,
@@ -42,6 +43,16 @@ class WorkoutService extends GetxService {
           jsonEncode(message.toJSON()),
         );
       }
+
+      // CODE FOR TESTING ONLY
+      final message = WorkoutBpmEventContent(
+        Env.serverSecret,
+        180,
+      );
+      _nostrService.sendEncryptedDM(
+        Env.serverPubkey,
+        jsonEncode(message.toJSON()),
+      );
     });
   }
 
@@ -55,7 +66,6 @@ class WorkoutService extends GetxService {
   }
 
   void stopWorkout() {
-    Wakelock.disable();
     running.value = false;
     _workoutDurationTimer.cancel();
     _workoutRewardsTimer.cancel();
