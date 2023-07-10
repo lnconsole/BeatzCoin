@@ -24,9 +24,9 @@ class PolarService extends GetxService {
   }
 
   Future searchDevices() async {
+    await polar.requestPermissions();
     final enableBluetooth = await BluetoothEnable.enableBluetooth;
     if (enableBluetooth == "true") {
-      polar.requestPermissions();
       polar.searchForDevice().listen((e) {
         devices.add(e);
       });
