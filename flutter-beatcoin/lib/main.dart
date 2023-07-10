@@ -24,7 +24,6 @@ void main() async {
 
   const storage = FlutterSecureStorage();
   final nostrService = NostrService(storage, Env.relayUrl);
-  await nostrService.init();
   final polarService = PolarService();
   final workoutService = WorkoutService(
     nostrService,
@@ -37,18 +36,30 @@ void main() async {
   Get.put(workoutService);
   Get.put(rewardService);
 
-  runApp(const MyApp());
+  runApp(
+    MyApp(
+      nostrService: nostrService,
+    ),
+  );
 }
 
 /// Example app
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.nostrService});
+
+  final NostrService nostrService;
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    widget.nostrService.init();
+    super.initState();
+  }
+
   var _currentIndex = 0;
   final _disconnectedIconAssetName =
       'assets/icons/plug-disconnected-24-regular.svg';

@@ -8,3 +8,7 @@
 - [x] animate sats when received
 - [x] prompt for bluetooth
 - [x] use flutter secure storage
+- [ ] internet connectivity check and notification
+- [ ] more robust relay connection handling (reconnect, etc)
+- [ ] generate nostr private key
+- [ ] validate pasted nostr private key
