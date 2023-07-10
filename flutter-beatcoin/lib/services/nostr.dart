@@ -8,20 +8,21 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class NostrService extends GetxService {
-  String _relayUrl = '';
-  final _pkKey = 'pk';
   static const eventKindMetadata = 0;
   static const eventKindEncryptedDM = 4;
   static const eventKindBeatzcoinHistory = 33333;
-  late FlutterSecureStorage _storage;
-  late WebSocket _ws;
-  late Keychain _keychain;
 
   final loggedIn = false.obs;
   final pubKey = ''.obs;
   final profile = NostrProfile.empty().obs;
   final connected = false.obs;
   bool get isProfileReady => loggedIn.value && profile.value.lud16 != '';
+
+  String _relayUrl = '';
+  final _pkKey = 'pk';
+  late FlutterSecureStorage _storage;
+  late WebSocket _ws;
+  late Keychain _keychain;
 
   NostrService(FlutterSecureStorage storage, String relayUrl) {
     _storage = storage;
