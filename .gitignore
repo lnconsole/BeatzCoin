@@ -24,3 +24,4 @@ go.work
 *~
 flutter-beatcoin/upload-keystore.jks
 prod
+.idea/

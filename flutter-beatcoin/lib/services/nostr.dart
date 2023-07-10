@@ -150,7 +150,6 @@ class NostrService extends GetxService {
         await _handleMetadataMessage(event);
         break;
       case NostrService.eventKindEncryptedDM:
-        _handleEncryptedDM(event);
         break;
       case NostrService.eventKindBeatzcoinHistory:
         _handleBeatzcoinEvent(event);
@@ -167,10 +166,6 @@ class NostrService extends GetxService {
       pInstance?.pictureUrl = p['picture'];
       pInstance?.lud16 = p['lud16'] ?? '';
     });
-  }
-
-  Future _handleEncryptedDM(Event event) async {
-    final dm = EncryptedDirectMessage.receive(event);
   }
 
   Future _handleBeatzcoinEvent(Event event) async {
