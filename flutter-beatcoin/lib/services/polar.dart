@@ -23,16 +23,13 @@ class PolarService extends GetxService {
     });
   }
 
-  void searchDevices() async {
+  Future searchDevices() async {
     final enableBluetooth = await BluetoothEnable.enableBluetooth;
     if (enableBluetooth == "true") {
-      print('ble enabled');
       polar.requestPermissions();
       polar.searchForDevice().listen((e) {
         devices.add(e);
       });
-    } else {
-      print('ble not enabled');
     }
   }
 

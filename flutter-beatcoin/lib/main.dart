@@ -96,13 +96,13 @@ class _MyAppState extends State<MyApp> {
     final workoutService = Get.find<WorkoutService>();
     final nostrService = Get.find<NostrService>();
 
-    Widget iconButton(bool deviceConnected) {
+    Widget connectHRSensorButton(bool deviceConnected) {
       return FilledButton.icon(
-        onPressed: () {
+        onPressed: () async {
           setState(() {
             _currentIndex = 3;
           });
-          polarService.searchDevices();
+          await polarService.searchDevices();
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith(
@@ -318,7 +318,7 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           elevation: 0,
           title: Obx(
-            () => iconButton(
+            () => connectHRSensorButton(
               polarService.isDeviceConnected.value,
             ),
           ),
