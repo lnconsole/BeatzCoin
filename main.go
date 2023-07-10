@@ -135,8 +135,9 @@ LOOP:
 			history[dTag.Value()] = &map[string]*int{}
 		}
 		// build history
-		for idx, session := range workout.History {
-			(*history[dTag.Value()])[session.Date] = &workout.History[idx].SatsEarned
+		for _, session := range workout.History {
+			copy := session
+			(*history[dTag.Value()])[session.Date] = &copy.SatsEarned
 		}
 	}
 	for key, value := range history {

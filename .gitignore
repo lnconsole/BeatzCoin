@@ -22,6 +22,9 @@ go.work
 
 .env
 *~
+
 flutter-beatcoin/upload-keystore.jks
 prod
 .idea/
+
+*DS_STORE
