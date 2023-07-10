@@ -268,11 +268,6 @@ func (x IBEXHub) GetPaymentStatus(checkingID string) (*lightning.PaymentStatus, 
 			log.Print("setting token")
 			x.defaultHttpHeaders["Authorization"] = loginResp.AccessToken
 			shouldRetry = true
-		} else if getResp.StatusCode == http.StatusNotFound {
-			// status not found when payment is in flight
-			return &lightning.PaymentStatus{
-				Status: lightning.Pending,
-			}, err
 		} else if getResp.StatusCode != http.StatusOK {
 			b, err := io.ReadAll(getResp.Body)
 			if err != nil {

@@ -47,8 +47,7 @@ const (
 	thresholdRate  = 160
 	rewardMsat     = 1000
 	dailySatsQuota = rewardMsat / 1000 * 300
-	// dailySatsQuota = rewardMsat / 1000 * 30
-	dateFormat = "2006/01/02"
+	dateFormat     = "2006/01/02"
 )
 
 var (
