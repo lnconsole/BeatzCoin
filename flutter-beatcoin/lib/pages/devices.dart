@@ -13,6 +13,17 @@ class DevicesPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Devices',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24.0,
+              ),
+            ),
+          ),
           Obx(
             () => Column(
               mainAxisSize: MainAxisSize.min,

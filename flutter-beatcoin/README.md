@@ -11,6 +11,7 @@
 - [ ] internet connectivity check and notification
 - [ ] more robust relay connection handling (reconnect, etc)
 - [ ] generate nostr private key
-- [ ] validate pasted nostr private key
+- [x] validate pasted nostr private key
 - [ ] large start workout button
 - [ ] secret debug page with prints
+- [ ] sats earned animation check

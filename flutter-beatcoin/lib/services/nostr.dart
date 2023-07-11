@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:beatcoin/env.dart';
+import 'package:beatcoin/services/debug.dart';
 import 'package:beatcoin/services/models.dart';
 import 'package:beatcoin/services/rewards.dart';
 import 'package:get/get.dart';
@@ -18,16 +19,19 @@ class NostrService extends GetxService {
   final connected = false.obs;
   bool get isProfileReady => loggedIn.value && profile.value.lud16 != '';
 
-  String _relayUrl = '';
+  final DebugService _debugService;
+  final String _relayUrl;
   final _pkKey = 'pk';
-  late FlutterSecureStorage _storage;
+  final FlutterSecureStorage _storage;
   late WebSocket _ws;
   late Keychain _keychain;
+  final _currentSubscriptions = <Request>[];
 
-  NostrService(FlutterSecureStorage storage, String relayUrl) {
-    _storage = storage;
-    _relayUrl = relayUrl;
-  }
+  NostrService(
+    this._storage,
+    this._relayUrl,
+    this._debugService,
+  );
 
   Future init() async {
     final pk = await _storage.read(key: _pkKey);
@@ -36,28 +40,7 @@ class NostrService extends GetxService {
 
       await _connectToRelay();
 
-      Request requestWithFilter = Request(
-        generate64RandomHexChars(),
-        [
-          Filter(
-            authors: [
-              _keychain.public,
-            ],
-            kinds: [NostrService.eventKindMetadata],
-            since: 1686306208,
-            limit: 450,
-          ),
-          Filter(
-            authors: [
-              Env.serverPubkey,
-            ],
-            kinds: [NostrService.eventKindBeatzcoinHistory],
-            since: 1686306208,
-            limit: 450,
-          ),
-        ],
-      );
-      _ws.add(requestWithFilter.serialize());
+      _subscribeToEventsForPubkey();
     }
   }
 
@@ -90,26 +73,9 @@ class NostrService extends GetxService {
 
     await _connectToRelay();
 
-    Request requestWithFilter = Request(
-      generate64RandomHexChars(),
-      [
-        Filter(
-          authors: [
-            _keychain.public,
-          ],
-          kinds: [NostrService.eventKindMetadata],
-          since: 1686306208,
-        ),
-        Filter(
-          authors: [
-            Env.serverPubkey,
-          ],
-          kinds: [NostrService.eventKindBeatzcoinHistory],
-          since: 1686306208,
-        ),
-      ],
-    );
-    _ws.add(requestWithFilter.serialize());
+    _closeAndClearSubscriptions();
+
+    _subscribeToEventsForPubkey();
 
     return true;
   }
@@ -149,10 +115,43 @@ class NostrService extends GetxService {
     _ws.add(e.serialize());
   }
 
+  void _subscribeToEventsForPubkey() {
+    Request requestWithFilter = Request(
+      generate64RandomHexChars(),
+      [
+        Filter(
+          authors: [
+            _keychain.public,
+          ],
+          kinds: [NostrService.eventKindMetadata],
+          since: 1686306208,
+        ),
+        Filter(
+          authors: [
+            Env.serverPubkey,
+          ],
+          kinds: [NostrService.eventKindBeatzcoinHistory],
+          since: 1686306208,
+        ),
+      ],
+    );
+    _ws.add(requestWithFilter.serialize());
+    _currentSubscriptions.add(requestWithFilter);
+  }
+
+  void _closeAndClearSubscriptions() {
+    for (final sub in _currentSubscriptions) {
+      final closeSub = Close(sub.subscriptionId);
+      _ws.add(closeSub.serialize());
+    }
+    _currentSubscriptions.clear();
+  }
+
   Future _connectToRelay() async {
     _ws = await WebSocket.connect(
       _relayUrl,
     );
+    _debugService.log('[Nostr] connected to relay');
 
     connected.value = true;
 
@@ -189,6 +188,8 @@ class NostrService extends GetxService {
       pInstance?.pictureUrl = p['picture'];
       pInstance?.lud16 = p['lud16'] ?? '';
     });
+
+    _debugService.log('[Nostr] received kind 0');
   }
 
   Future _handleBeatzcoinEvent(Event event) async {
@@ -202,6 +203,12 @@ class NostrService extends GetxService {
 
         final rewardService = Get.find<RewardsService>();
         rewardService.setWorkoutHistory(eventContent.workout);
+
+        if (eventContent.workout.isNotEmpty) {
+          _debugService.log(
+            '[Nostr] received kind 33333 {satsEarned: ${eventContent.workout.first.satsEarned}}',
+          );
+        }
 
         return;
       }

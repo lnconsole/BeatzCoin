@@ -1,8 +1,10 @@
 import 'package:beatcoin/env.dart';
+import 'package:beatcoin/pages/debug.dart';
 import 'package:beatcoin/pages/devices.dart';
 import 'package:beatcoin/pages/home.dart';
 import 'package:beatcoin/pages/profile.dart';
 import 'package:beatcoin/pages/workout.dart';
+import 'package:beatcoin/services/debug.dart';
 import 'package:beatcoin/services/nostr.dart';
 import 'package:beatcoin/services/polar.dart';
 import 'package:beatcoin/services/rewards.dart';
@@ -23,7 +25,12 @@ void main() async {
   ]);
 
   const storage = FlutterSecureStorage();
-  final nostrService = NostrService(storage, Env.relayUrl);
+  final debugService = DebugService();
+  final nostrService = NostrService(
+    storage,
+    Env.relayUrl,
+    debugService,
+  );
   final polarService = PolarService();
   final workoutService = WorkoutService(
     nostrService,
@@ -35,6 +42,7 @@ void main() async {
   Get.put(polarService);
   Get.put(workoutService);
   Get.put(rewardService);
+  Get.put(debugService);
 
   runApp(
     MyApp(
@@ -73,6 +81,8 @@ class _MyAppState extends State<MyApp> {
         return const ProfilePage();
       case 3:
         return const DevicesPage();
+      case 4:
+        return const DebugPage();
       default:
         return const HomePage();
     }
@@ -83,7 +93,7 @@ class _MyAppState extends State<MyApp> {
     WorkoutService workoutService,
     PolarService polarService,
   ) {
-    if (currentIndex == 1 && workoutService.readyToWorkout) {
+    if (currentIndex == 1 /*&& workoutService.readyToWorkout*/) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
@@ -108,57 +118,53 @@ class _MyAppState extends State<MyApp> {
     final nostrService = Get.find<NostrService>();
 
     Widget connectHRSensorButton(bool deviceConnected) {
-      return FilledButton.icon(
-        onPressed: () async {
+      return GestureDetector(
+        onTap: () {
           setState(() {
             _currentIndex = 3;
           });
-          await polarService.searchDevices();
         },
-        style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.resolveWith(
-            (states) {
-              if (deviceConnected) {
-                return Colors.green[50];
-              }
-              return Colors.red[50];
-            },
+        onLongPress: () {
+          setState(() {
+            _currentIndex = 4;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            color: deviceConnected ? Colors.green[50]! : Colors.red[50]!,
           ),
-          overlayColor: MaterialStateProperty.resolveWith(
-            (states) {
-              if (deviceConnected) {
-                return Colors.green[100];
-              }
-              return Colors.red[100];
-            },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  deviceConnected
+                      ? _connectedIconAssetName
+                      : _disconnectedIconAssetName,
+                  width: 24,
+                  height: 24,
+                  colorFilter: ColorFilter.mode(
+                    deviceConnected ? Colors.green[400]! : Colors.red[400]!,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                Text(
+                  'connect',
+                  style: TextStyle(
+                    fontSize: 12.0,
+                    color:
+                        deviceConnected ? Colors.green[400] : Colors.red[400],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        icon: SvgPicture.asset(
-          deviceConnected
-              ? _connectedIconAssetName
-              : _disconnectedIconAssetName,
-          width: 24,
-          height: 24,
-          colorFilter: ColorFilter.mode(
-            deviceConnected ? Colors.green[400]! : Colors.red[400]!,
-            BlendMode.srcIn,
-          ),
-        ),
-        label: deviceConnected
-            ? Text(
-                polarService.heartRate.value.toString(),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
-                ),
-              )
-            : Text(
-                'connect',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: deviceConnected ? Colors.green[400] : Colors.red[400],
-                ),
-              ),
       );
     }
 
