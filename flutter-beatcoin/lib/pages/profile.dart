@@ -105,6 +105,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   FilledButton.icon(
                     onPressed: () {
+                      final success = nostrService.validatePrivateKey(_pk);
+                      if (!success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Error: looks like an invalid private key',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       nostrService.setPrivateKey(_pk);
                     },
                     icon: const Icon(

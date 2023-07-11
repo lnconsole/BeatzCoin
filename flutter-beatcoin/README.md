@@ -12,3 +12,5 @@
 - [ ] more robust relay connection handling (reconnect, etc)
 - [ ] generate nostr private key
 - [ ] validate pasted nostr private key
+- [ ] large start workout button
+- [ ] secret debug page with prints

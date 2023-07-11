@@ -66,9 +66,29 @@ class NostrService extends GetxService {
     connected.value = false;
   }
 
-  Future setPrivateKey(String privateKey) async {
+  bool validatePrivateKey(String privateKey) {
+    try {
+      String pk = privateKey;
+      if (privateKey.startsWith('nsec1')) {
+        pk = Nip19.decodePrivkey(privateKey);
+      }
+
+      _keychain = Keychain(pk);
+    } catch (e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<bool> setPrivateKey(String privateKey) async {
+    try {
+      await _setPrivateKey(privateKey);
+    } catch (e) {
+      return false;
+    }
+
     await _connectToRelay();
-    await _setPrivateKey(privateKey);
 
     Request requestWithFilter = Request(
       generate64RandomHexChars(),
@@ -90,6 +110,8 @@ class NostrService extends GetxService {
       ],
     );
     _ws.add(requestWithFilter.serialize());
+
+    return true;
   }
 
   Future logout() async {
