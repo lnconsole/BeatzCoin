@@ -195,6 +195,7 @@ LOOP:
 			// fetch profile
 			fetchMetadataAsync(evt.PubKey, profilech)
 		}
+		log.Printf("Why is kind 4 sub channel dead?")
 	}(subDM)
 	// handle profile
 	go func() {
@@ -255,6 +256,7 @@ LOOP:
 				log.Print(err)
 				continue
 			}
+			log.Printf("publishing kind 33333: %s", string(bytes))
 			if _, err := bstr.Publish(context.Background(), nostr.Event{
 				CreatedAt: time.Now(),
 				Kind:      33333,
@@ -276,6 +278,7 @@ LOOP:
 			}
 			log.Printf("sending %d sats to %s", rewardMsat/1000, *p.Lud16)
 		}
+		log.Printf("Why is kind 0 sub channel dead?")
 	}()
 	// wait
 	<-make(chan struct{})
@@ -309,6 +312,7 @@ func fetchMetadataAsync(pubkey string, ch chan Profile) {
 				}
 			}
 		}
+		subMetadata.Unsub()
 
 		var latest *nostr.Event
 		for i := range events {
