@@ -30,10 +30,12 @@ class _WorkoutPageState extends State<WorkoutPage>
       ),
     );
     ever(rewardService.satsEarnedFormatted, (_) {
-      final animationFuture = _animationController.forward();
-      animationFuture.whenCompleteOrCancel(() {
-        _animationController.reverse();
-      });
+      if (!_animationController.isAnimating) {
+        final animationFuture = _animationController.forward();
+        animationFuture.whenCompleteOrCancel(() {
+          _animationController.reverse();
+        });
+      }
     });
     super.initState();
   }

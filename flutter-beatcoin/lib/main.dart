@@ -93,7 +93,7 @@ class _MyAppState extends State<MyApp> {
     WorkoutService workoutService,
     PolarService polarService,
   ) {
-    if (currentIndex == 1 /*&& workoutService.readyToWorkout*/) {
+    if (currentIndex == 1 && workoutService.readyToWorkout) {
       return Obx(
         () => FloatingActionButton(
           onPressed: () {
@@ -132,7 +132,7 @@ class _MyAppState extends State<MyApp> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
-            color: deviceConnected ? Colors.green[50]! : Colors.red[50]!,
+            color: deviceConnected ? Colors.green[100]! : Colors.red[100]!,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -153,12 +153,15 @@ class _MyAppState extends State<MyApp> {
                     BlendMode.srcIn,
                   ),
                 ),
-                Text(
-                  'connect',
-                  style: TextStyle(
-                    fontSize: 12.0,
-                    color:
-                        deviceConnected ? Colors.green[400] : Colors.red[400],
+                Padding(
+                  padding: const EdgeInsets.only(left: 6.0),
+                  child: Text(
+                    'connect',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color:
+                          deviceConnected ? Colors.green[400] : Colors.red[400],
+                    ),
                   ),
                 ),
               ],
@@ -169,38 +172,56 @@ class _MyAppState extends State<MyApp> {
     }
 
     Widget relayButton(NostrService nostrService) {
-      if (!nostrService.connected.value) {
-        return Container();
-      }
-
-      return Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8.0,
-        ),
-        child: FilledButton.icon(
-          onPressed: () {},
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(
-              Colors.blue[50],
-            ),
-            overlayColor: MaterialStateProperty.all(
-              Colors.blue[100],
-            ),
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            _currentIndex = 3;
+          });
+        },
+        onLongPress: () {
+          setState(() {
+            _currentIndex = 4;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            color: nostrService.connected.value
+                ? const Color.fromARGB(255, 189, 131, 255)
+                : Colors.red[50]!,
           ),
-          icon: SvgPicture.asset(
-            'assets/icons/network-3.svg',
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(
-              Colors.blue[400]!,
-              BlendMode.srcIn,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
             ),
-          ),
-          label: Text(
-            'nostr',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.blue[400],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/network-3.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter: ColorFilter.mode(
+                    nostrService.connected.value
+                        ? const Color.fromARGB(255, 136, 58, 225)
+                        : Colors.red[400]!,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 6.0),
+                  child: Text(
+                    'nostr',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: nostrService.connected.value
+                          ? const Color.fromARGB(255, 136, 58, 225)
+                          : Colors.red[400],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -341,7 +362,10 @@ class _MyAppState extends State<MyApp> {
           ),
           actions: [
             Obx(
-              () => relayButton(nostrService),
+              () => Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: relayButton(nostrService),
+              ),
             ),
           ],
         ),
