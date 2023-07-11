@@ -93,18 +93,18 @@ class _MyAppState extends State<MyApp> {
     WorkoutService workoutService,
     PolarService polarService,
   ) {
-    if (currentIndex == 1 && workoutService.readyToWorkout) {
+    if (currentIndex == 1) {
       return Obx(
-        () => FloatingActionButton(
-          onPressed: () {
-            workoutService.running.value
-                ? workoutService.stopWorkout()
-                : workoutService.startWorkout();
-          },
-          child: Icon(
-            workoutService.running.value ? Icons.stop : Icons.play_arrow,
-          ),
-        ),
+        () => workoutService.running.value
+            ? FloatingActionButton(
+                onPressed: () {
+                  workoutService.stopWorkout();
+                },
+                child: const Icon(
+                  Icons.stop,
+                ),
+              )
+            : Container(),
       );
     }
 
@@ -123,6 +123,7 @@ class _MyAppState extends State<MyApp> {
           setState(() {
             _currentIndex = 3;
           });
+          polarService.searchDevices();
         },
         onLongPress: () {
           setState(() {
@@ -156,7 +157,7 @@ class _MyAppState extends State<MyApp> {
                 Padding(
                   padding: const EdgeInsets.only(left: 6.0),
                   child: Text(
-                    'connect',
+                    deviceConnected ? 'ready' : 'connect',
                     style: TextStyle(
                       fontSize: 12.0,
                       color:
@@ -188,7 +189,7 @@ class _MyAppState extends State<MyApp> {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             color: nostrService.connected.value
                 ? const Color.fromARGB(255, 189, 131, 255)
-                : Colors.red[50]!,
+                : Colors.red[100]!,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(

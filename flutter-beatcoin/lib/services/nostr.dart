@@ -96,6 +96,9 @@ class NostrService extends GetxService {
       content,
     );
     _ws.add(e.serialize());
+    _debugService.log(
+      '[Nostr] sent kind 4 ${e.serialize()}',
+    );
   }
 
   void updateLud16(String lud16) async {
@@ -194,7 +197,9 @@ class NostrService extends GetxService {
 
   Future _handleBeatzcoinEvent(Event event) async {
     for (final tag in event.tags) {
-      if (tag.contains(_keychain.public)) {
+      if (tag.isNotEmpty &&
+          tag.first == "d" &&
+          tag.contains(_keychain.public)) {
         final eventContent = BeatzcoinEventContent.fromJSON(
           jsonDecode(
             event.content,
@@ -206,7 +211,7 @@ class NostrService extends GetxService {
 
         if (eventContent.workout.isNotEmpty) {
           _debugService.log(
-            '[Nostr] received kind 33333 {satsEarned: ${eventContent.workout.first.satsEarned}}',
+            '[Nostr] received kind 33333 {satsEarned: ${eventContent.workout.first.satsEarned}, id: ${event.id}}',
           );
         }
 
