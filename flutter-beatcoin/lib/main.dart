@@ -37,7 +37,10 @@ void main() async {
     Env.relayUrl,
     debugService,
   );
-  final polarService = PolarService(prefs);
+  final polarService = PolarService(
+    prefs,
+    debugService,
+  );
   final workoutService = WorkoutService(
     nostrService,
     polarService,
@@ -70,6 +73,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
+    final polarService = Get.find<PolarService>();
+    polarService.searchDevices();
     widget.nostrService.init();
     super.initState();
   }

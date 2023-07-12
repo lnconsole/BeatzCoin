@@ -1,3 +1,4 @@
+import 'package:beatcoin/services/debug.dart';
 import 'package:get/state_manager.dart';
 import 'package:polar/polar.dart';
 import 'package:bluetooth_enable_fork/bluetooth_enable_fork.dart';
@@ -13,18 +14,22 @@ class PolarService extends GetxService {
   RxInt batteryLevel = 0.obs;
   final _prefsDeviceIdKey = 'LAST_CONNECTED_DEVICE_ID';
   final SharedPreferences _prefs;
+  final DebugService _debugService;
 
   PolarService(
     this._prefs,
+    this._debugService,
   ) {
     polar.batteryLevel.listen((e) => batteryLevel.value = e.level);
     polar.deviceConnected.listen((e) {
       isDeviceConnected.value = true;
       connectedDeviceId.value = e.deviceId;
+      _debugService.log('[Polar] connected to device ${e.deviceId}');
     });
-    polar.deviceDisconnected.listen((_) {
+    polar.deviceDisconnected.listen((e) {
       isDeviceConnected.value = false;
       connectedDeviceId.value = '';
+      _debugService.log('[Polar] disconnected from device ${e.deviceId}');
     });
   }
 
@@ -32,6 +37,7 @@ class PolarService extends GetxService {
     await polar.requestPermissions();
     final enableBluetooth = await BluetoothEnable.enableBluetooth;
     if (enableBluetooth == "true") {
+      _debugService.log('[Polar] searching devices');
       devices.clear();
       polar.searchForDevice().listen((e) {
         devices.add(e);
@@ -45,9 +51,12 @@ class PolarService extends GetxService {
   }
 
   void connect(String deviceId) async {
+    if (connectedDeviceId.value == deviceId) {
+      return;
+    }
+
     await polar.disconnectFromDevice(deviceId);
     await polar.connectToDevice(deviceId);
-
     await _prefs.setString(_prefsDeviceIdKey, deviceId);
 
     await polar.sdkFeatureReady.firstWhere(
