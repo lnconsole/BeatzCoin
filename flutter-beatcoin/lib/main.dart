@@ -16,6 +16,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,14 +26,18 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  final logger = Logger();
   const storage = FlutterSecureStorage();
-  final debugService = DebugService();
+  final prefs = await SharedPreferences.getInstance();
+  final debugService = DebugService(
+    logger,
+  );
   final nostrService = NostrService(
     storage,
     Env.relayUrl,
     debugService,
   );
-  final polarService = PolarService();
+  final polarService = PolarService(prefs);
   final workoutService = WorkoutService(
     nostrService,
     polarService,
@@ -96,12 +102,18 @@ class _MyAppState extends State<MyApp> {
     if (currentIndex == 1) {
       return Obx(
         () => workoutService.running.value
-            ? FloatingActionButton(
-                onPressed: () {
+            ? FilledButton(
+                onPressed: () => {},
+                onLongPress: () {
                   workoutService.stopWorkout();
                 },
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all(const CircleBorder()),
+                  padding: MaterialStateProperty.all(const EdgeInsets.all(16)),
+                ),
                 child: const Icon(
                   Icons.stop,
+                  size: 32,
                 ),
               )
             : Container(),
@@ -188,7 +200,7 @@ class _MyAppState extends State<MyApp> {
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             color: nostrService.connected.value
-                ? const Color.fromARGB(255, 189, 131, 255)
+                ? const Color.fromARGB(255, 205, 169, 245)
                 : Colors.red[100]!,
           ),
           child: Padding(

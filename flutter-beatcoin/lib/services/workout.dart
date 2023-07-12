@@ -16,7 +16,7 @@ class WorkoutService extends GetxService {
   final NostrService _nostrService;
   final PolarService _polarService;
   final _oneSecondTimerDuration = const Duration(seconds: 1);
-  final _workoutRewardTimerDuration = const Duration(seconds: 12);
+  final _workoutRewardTimerDuration = const Duration(seconds: 5);
 
   bool get readyToWorkout =>
       _polarService.isDeviceConnected.value && _nostrService.isProfileReady;
@@ -47,14 +47,14 @@ class WorkoutService extends GetxService {
       }
 
       // CODE FOR TESTING ONLY
-      // final message = WorkoutBpmEventContent(
-      //   Env.serverSecret,
-      //   180,
-      // );
-      // _nostrService.sendEncryptedDM(
-      //   Env.serverPubkey,
-      //   jsonEncode(message.toJSON()),
-      // );
+      final message = WorkoutBpmEventContent(
+        Env.serverSecret,
+        180,
+      );
+      _nostrService.sendEncryptedDM(
+        Env.serverPubkey,
+        jsonEncode(message.toJSON()),
+      );
     });
   }
 

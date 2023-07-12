@@ -1,6 +1,7 @@
 import 'package:get/state_manager.dart';
 import 'package:polar/polar.dart';
 import 'package:bluetooth_enable_fork/bluetooth_enable_fork.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PolarService extends GetxService {
   final polar = Polar();
@@ -10,8 +11,12 @@ class PolarService extends GetxService {
   RxBool isDeviceConnected = false.obs;
   RxString connectedDeviceId = ''.obs;
   RxInt batteryLevel = 0.obs;
+  final _prefsDeviceIdKey = 'LAST_CONNECTED_DEVICE_ID';
+  final SharedPreferences _prefs;
 
-  PolarService() {
+  PolarService(
+    this._prefs,
+  ) {
     polar.batteryLevel.listen((e) => batteryLevel.value = e.level);
     polar.deviceConnected.listen((e) {
       isDeviceConnected.value = true;
@@ -30,6 +35,11 @@ class PolarService extends GetxService {
       devices.clear();
       polar.searchForDevice().listen((e) {
         devices.add(e);
+        final lastConnectedDeviceId = _prefs.getString(_prefsDeviceIdKey);
+        if (lastConnectedDeviceId != null &&
+            e.deviceId == lastConnectedDeviceId) {
+          connect(e.deviceId);
+        }
       });
     }
   }
@@ -37,6 +47,8 @@ class PolarService extends GetxService {
   void connect(String deviceId) async {
     await polar.disconnectFromDevice(deviceId);
     await polar.connectToDevice(deviceId);
+
+    await _prefs.setString(_prefsDeviceIdKey, deviceId);
 
     await polar.sdkFeatureReady.firstWhere(
       (e) =>

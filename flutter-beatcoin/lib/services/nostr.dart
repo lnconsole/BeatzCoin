@@ -95,7 +95,7 @@ class NostrService extends GetxService {
       receiverPubkey,
       content,
     );
-    _ws.add(e.serialize());
+    await _wsSend(e.serialize());
     _debugService.log(
       '[Nostr] sent kind 4 ${e.serialize()}',
     );
@@ -115,7 +115,7 @@ class NostrService extends GetxService {
       privkey: _keychain.private,
     );
 
-    _ws.add(e.serialize());
+    _wsSend(e.serialize());
   }
 
   void _subscribeToEventsForPubkey() {
@@ -138,14 +138,14 @@ class NostrService extends GetxService {
         ),
       ],
     );
-    _ws.add(requestWithFilter.serialize());
+    _wsSend(requestWithFilter.serialize());
     _currentSubscriptions.add(requestWithFilter);
   }
 
   void _closeAndClearSubscriptions() {
     for (final sub in _currentSubscriptions) {
       final closeSub = Close(sub.subscriptionId);
-      _ws.add(closeSub.serialize());
+      _wsSend(closeSub.serialize());
     }
     _currentSubscriptions.clear();
   }
@@ -158,15 +158,18 @@ class NostrService extends GetxService {
 
     connected.value = true;
 
-    _ws.listen((event) {
-      final e = Message.deserialize(event);
-      switch (e.type) {
-        case "EVENT":
-          _handleEvent(e.message);
-          break;
-        default:
-      }
-    });
+    _ws.listen(
+      (event) {
+        final e = Message.deserialize(event);
+        switch (e.type) {
+          case "EVENT":
+            _handleEvent(e.message);
+            break;
+          default:
+        }
+      },
+      onDone: () => {_debugService.log('[Nostr] websocket on done')},
+    );
   }
 
   Future _handleEvent(Event event) async {
@@ -233,5 +236,15 @@ class NostrService extends GetxService {
 
     profile.value = NostrProfile.empty();
     loggedIn.value = true;
+  }
+
+  Future _wsSend(String msg) async {
+    if (_ws.closeCode != null) {
+      _debugService.log('[Nostr] ws is closed, reconnecting');
+      await _connectToRelay();
+      _subscribeToEventsForPubkey();
+    }
+
+    _ws.add(msg);
   }
 }
