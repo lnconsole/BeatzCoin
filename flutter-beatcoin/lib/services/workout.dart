@@ -47,14 +47,14 @@ class WorkoutService extends GetxService {
       }
 
       // CODE FOR TESTING ONLY
-      final message = WorkoutBpmEventContent(
-        Env.serverSecret,
-        180,
-      );
-      _nostrService.sendEncryptedDM(
-        Env.serverPubkey,
-        jsonEncode(message.toJSON()),
-      );
+      // final message = WorkoutBpmEventContent(
+      //   Env.serverSecret,
+      //   180,
+      // );
+      // _nostrService.sendEncryptedDM(
+      //   Env.serverPubkey,
+      //   jsonEncode(message.toJSON()),
+      // );
     });
   }
 
