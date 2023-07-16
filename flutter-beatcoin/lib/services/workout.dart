@@ -16,7 +16,7 @@ class WorkoutService extends GetxService {
   final NostrService _nostrService;
   final PolarService _polarService;
   final _oneSecondTimerDuration = const Duration(seconds: 1);
-  final _workoutRewardTimerDuration = const Duration(seconds: 5);
+  final _workoutRewardTimerDuration = const Duration(seconds: 12);
 
   bool get readyToWorkout =>
       _polarService.isDeviceConnected.value && _nostrService.isProfileReady;
