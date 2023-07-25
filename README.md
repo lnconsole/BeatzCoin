@@ -4,6 +4,8 @@
 
 Beatzcoin captures user's heart rate and transmit it to the server via the nostr protocol. For every 12 seconds of >= 160 BPM, a sat is sent to the lightning address associated with the user's nostr profile
 
+<img width="558" alt="Screenshot 2023-07-25 at 11 39 26 AM" src="https://github.com/lnconsole/BeatzCoin/assets/43709958/9efe0e13-a983-429b-8fc5-4bf3d9e70ab7">
+
 There are 3 components to this project
 1. **Mobile app (Flutter OSS)**
 - Allows user to enter nostr profile & associate a lightning address
